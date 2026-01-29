@@ -165,7 +165,7 @@ cat >"$CONFIG_FILE" <<EOF
   "gateway": {
     "port": ${CLAWDBOT_GATEWAY_PORT:-18789},
     "mode": "local",
-    "bind": "lan",
+    "bind": "0.0.0.0",
     "controlUi": {
       "enabled": true,
       "allowInsecureAuth": false

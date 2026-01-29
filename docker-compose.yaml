@@ -20,7 +20,7 @@ services:
       TERM: xterm-256color
       
       # Map Moltbot vars to internal Clawdbot vars
-      CLAWDBOT_GATEWAY_BIND: ${MOLTBOT_GATEWAY_BIND:-auto}
+      CLAWDBOT_GATEWAY_BIND: ${MOLTBOT_GATEWAY_BIND:-0.0.0.0}
       CLAWDBOT_GATEWAY_PORT: ${MOLTBOT_GATEWAY_PORT:-18789}
       # Tell the binary where to look for state/config
       MOLTBOT_STATE_DIR: /home/node/.moltbot
