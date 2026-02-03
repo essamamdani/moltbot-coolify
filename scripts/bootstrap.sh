@@ -129,6 +129,11 @@ if [ ! -f "$CONFIG_FILE" ]; then
       "envelopeTimestamp": "on",
       "envelopeElapsed": "on",
       "cliBackends": {},
+      "model": {
+        "primary": "google-antigravity/claude-3-5-sonnet",
+        "fallbacks": ["mistral/mistral-large-latest", "mistral/codestral-latest"]
+      },
+      "systemPrompt": "You are a highly capable AI assistant. Be professional, thorough, and proactive. When given tasks, break them down systematically and execute with precision. Always verify your work.",
       "heartbeat": {
         "every": "1h"
       },
@@ -142,7 +147,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
         "scope": "session",
         "docker": {
           "readOnlyRoot": true,
-          "network": "none",
+          "network": "bridge",
           "capDrop": ["ALL"],
           "pidsLimit": 256,
           "memory": "1g",
@@ -179,6 +184,18 @@ if [ ! -f "$CONFIG_FILE" ]; then
   "tools": {
     "elevated": {
       "enabled": false
+    },
+    "web": {
+      "search": {
+        "enabled": true,
+        "provider": "brave"
+      },
+      "fetch": {
+        "enabled": true
+      }
+    },
+    "browser": {
+      "enabled": true
     }
   },
   "logging": {
