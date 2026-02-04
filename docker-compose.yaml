@@ -140,6 +140,12 @@ services:
       GITHUB_USERNAME: ${GITHUB_USERNAME}
       GITHUB_EMAIL: ${GITHUB_EMAIL}
       
+      # SearXNG integration (internal network)
+      SEARXNG_API_URL: http://searxng:8080
+      
+      # Brave Search API (fallback)
+      BRAVE_API_KEY: ${BRAVE_API_KEY}
+      
       # Feature flags
       OPENCLAW_BETA: ${OPENCLAW_BETA:-false}
       SANDBOX_CONTAINER: ${SANDBOX_CONTAINER:-true}
