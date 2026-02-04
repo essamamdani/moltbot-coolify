@@ -1,107 +1,24 @@
 #!/bin/bash
-# Configure OpenClaw Exec Security
-# This script sets up secure command execution with allowlist
+# Configure OpenClaw Web Search (Brave API)
+# This script enables web search if BRAVE_API_KEY is set
 
 set -e
 
-echo "🦞 Configuring OpenClaw Exec Security..."
+echo "🦞 Configuring OpenClaw Web Search..."
 
-CONFIG_FILE="/root/.openclaw/openclaw.json"
-BACKUP_FILE="/root/.openclaw/openclaw.json.backup"
-
-# Backup existing config
-if [ -f "$CONFIG_FILE" ]; then
-    echo "📦 Backing up existing config..."
-    cp "$CONFIG_FILE" "$BACKUP_FILE"
+# Check if Brave API key is set
+if [ -z "$BRAVE_API_KEY" ]; then
+    echo "⚠️  BRAVE_API_KEY not set - web search will not be available"
+    echo "   Get your API key from: https://brave.com/search/api/"
+    echo "   Add it to Coolify environment variables and restart"
+    exit 0
 fi
 
-# Create or update config with exec security settings
-echo "🔒 Setting up exec security configuration..."
-
-cat > "$CONFIG_FILE" << 'EOF'
-{
-  "tools": {
-    "profile": "coding",
-    "exec": {
-      "enabled": true,
-      "security": "allowlist",
-      "ask": true,
-      "allowlist": [
-        "/usr/bin/git",
-        "/usr/bin/docker",
-        "/usr/bin/npm",
-        "/usr/bin/node",
-        "/usr/bin/bun",
-        "/usr/local/bin/openclaw",
-        "/usr/local/bin/clawhub",
-        "/usr/bin/curl",
-        "/usr/bin/wget",
-        "/usr/bin/ls",
-        "/usr/bin/cat",
-        "/usr/bin/grep",
-        "/usr/bin/find",
-        "/usr/bin/df",
-        "/usr/bin/free",
-        "/usr/bin/top",
-        "/usr/bin/ps"
-      ],
-      "applyPatch": {
-        "enabled": false
-      },
-      "approvals": {
-        "enabled": true,
-        "timeoutSeconds": 300
-      }
-    },
-    "web": {
-      "search": {
-        "enabled": true,
-        "provider": "brave",
-        "count": 10
-      },
-      "fetch": {
-        "enabled": true,
-        "maxChars": 50000,
-        "timeoutSeconds": 30,
-        "readability": true
-      }
-    },
-    "browser": {
-      "enabled": true,
-      "headless": true,
-      "defaultProfile": "openclaw"
-    },
-    "elevated": {
-      "enabled": false
-    }
-  },
-  "skills": {
-    "load": {
-      "enabled": true,
-      "bundled": true,
-      "managed": true,
-      "workspace": true
-    }
-  }
-}
-EOF
-
+echo "✅ BRAVE_API_KEY detected - web search will be enabled"
 echo ""
-echo "✅ Exec security configured!"
+echo "💡 Web search is already configured in the base config"
+echo "   Provider: Brave Search"
+echo "   Status: Enabled"
 echo ""
-echo "🔒 Security settings:"
-echo "   - Exec enabled: YES"
-echo "   - Security mode: ALLOWLIST"
-echo "   - Ask before exec: YES"
-echo "   - Approvals: ENABLED (5 min timeout)"
-echo "   - Elevated mode: DISABLED"
-echo ""
-echo "✅ Allowed commands:"
-echo "   - git, docker, npm, node, bun"
-echo "   - openclaw, clawhub"
-echo "   - curl, wget"
-echo "   - ls, cat, grep, find"
-echo "   - df, free, top, ps"
-echo ""
-echo "💡 To add more commands to allowlist, edit: $CONFIG_FILE"
-echo "   Then restart the gateway: openclaw gateway restart"
+echo "🔍 Test it by messaging your bot:"
+echo "   'Search for latest Docker security best practices'"
