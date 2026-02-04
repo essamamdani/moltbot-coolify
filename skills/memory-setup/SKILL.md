@@ -1,170 +1,251 @@
 ---
 name: memory-setup
-description: Enable and configure OpenClaw memory search for persistent context. Use when setting up memory, fixing memory issues, or helping configure memorySearch. Covers MEMORY.md, daily logs, and vector search setup.
+description: Enable and configure OpenClaw memory search for persistent context across sessions. Transforms agent from goldfish to elephant memory.
 metadata:
   openclaw:
     emoji: 🧠
     requires:
-      bins: []
+      config: ["memorySearch.enabled"]
 ---
 
 # Memory Setup Skill
 
-Enable persistent memory for OpenClaw agents. Transform from goldfish to elephant.
+Transform your agent from goldfish to elephant memory. This skill helps configure persistent memory for OpenClaw, enabling the agent to remember conversations, decisions, and context across sessions.
+
+## What is Memory Search?
+
+Memory search allows OpenClaw to:
+- **Remember past conversations** across sessions
+- **Recall decisions and context** from weeks/months ago
+- **Track project history** and progress
+- **Learn your preferences** over time
+- **Build continuity** in long-term relationships
+
+Without memory: Agent forgets everything between sessions, repeats questions, loses context.
+
+With memory: Agent recalls past work, knows your preferences, tracks projects, builds relationships.
 
 ## Quick Setup
 
 ### 1. Enable Memory Search in Config
 
-Memory search is **enabled by default** in OpenClaw. To customize, add to `~/.openclaw/openclaw.json`:
+Add to `~/.openclaw/openclaw.json`:
 
 ```json
 {
-  "agents": {
-    "defaults": {
-      "memorySearch": {
-        "enabled": true,
-        "provider": "local",
-        "fallback": "none",
-        "sources": ["memory", "sessions"]
-      }
-    }
+  "memorySearch": {
+    "enabled": true,
+    "provider": "gemini",
+    "sources": ["memory", "sessions"],
+    "indexMode": "hot",
+    "minScore": 0.3,
+    "maxResults": 20
   }
 }
 ```
 
-### 2. Memory Structure (Already Created)
+**Or use CLI:**
+```bash
+openclaw config set memorySearch.enabled true
+openclaw config set memorySearch.provider gemini
+openclaw config set memorySearch.sources '["memory", "sessions"]'
+```
 
-Your workspace already has:
+### 2. Create Memory Structure
+
+In your workspace, create:
 
 ```
-/root/openclaw-workspace/
+workspace/
 ├── MEMORY.md              # Long-term curated memory
 └── memory/
-    ├── YYYY-MM-DD.md      # Daily logs
-    └── heartbeat-state.json
+    ├── logs/              # Daily logs (YYYY-MM-DD.md)
+    ├── projects/          # Project-specific context
+    ├── groups/            # Group chat context
+    └── system/            # Preferences, setup notes
 ```
 
-### 3. Verify Memory is Working
+### 3. Initialize MEMORY.md
 
-Check memory status:
-```bash
-openclaw memory status
+Create `MEMORY.md` in workspace root:
+
+```markdown
+# MEMORY.md — Long-Term Memory
+
+## About [User Name]
+- Key facts, preferences, context
+- Communication style
+- Goals and priorities
+
+## Active Projects
+- Project summaries and status
+- Key decisions made
+- Next steps
+
+## Decisions & Lessons
+- Important choices made
+- Lessons learned
+- What worked / didn't work
+
+## Preferences
+- Communication style
+- Tools and workflows
+- Favorite approaches
 ```
 
-Reindex if needed:
-```bash
-openclaw memory index
-```
+## Configuration Options
 
-## Config Options
-
-| Setting | Purpose | Default | Recommended |
-|---------|---------|---------|-------------|
-| `enabled` | Turn on memory search | `true` | `true` |
-| `provider` | Embedding provider | `local` | `local` (no API cost) |
-| `fallback` | Fallback if provider fails | `openai` | `none` (stay local) |
-| `sources` | What to index | `["memory"]` | `["memory", "sessions"]` |
+| Setting | Purpose | Recommended | Options |
+|---------|---------|-------------|---------|
+| `enabled` | Turn on memory search | `true` | true/false |
+| `provider` | Embedding provider | `"gemini"` | voyage, openai, gemini, local |
+| `sources` | What to index | `["memory", "sessions"]` | memory, sessions, both |
+| `indexMode` | When to index | `"hot"` | hot (real-time), cold (on-demand) |
+| `minScore` | Relevance threshold | `0.3` | 0.0-1.0 (lower = more results) |
+| `maxResults` | Max snippets returned | `20` | 1-100 |
 
 ### Provider Options
-- `local` — Local embeddings (no API, ~600MB model, recommended)
-- `openai` — OpenAI embeddings (requires `OPENAI_API_KEY`)
-- `gemini` — Gemini embeddings (requires `GEMINI_API_KEY`)
+
+**Gemini (Recommended for OpenClaw):**
+```json
+"provider": "gemini"
+```
+- Uses Google's Gemini embeddings
+- Requires `GEMINI_API_KEY`
+- Good quality, reasonable cost
+- Works well with read-only filesystem
+
+**Voyage AI:**
+```json
+"provider": "voyage"
+```
+- High-quality embeddings
+- Requires `VOYAGE_API_KEY`
+- Best accuracy
+
+**OpenAI:**
+```json
+"provider": "openai"
+```
+- Uses OpenAI embeddings
+- Requires `OPENAI_API_KEY`
+- Good quality, higher cost
+
+**Local (No API needed):**
+```json
+"provider": "local"
+```
+- ⚠️ Requires writable `/root/.node-llama-cpp`
+- Won't work with read-only filesystem
+- No API costs
 
 ### Source Options
-- `memory` — MEMORY.md + memory/*.md files only
-- `sessions` — Past conversation transcripts
-- `["memory", "sessions"]` — Full context (recommended)
+
+**Memory only:**
+```json
+"sources": ["memory"]
+```
+- Only indexes MEMORY.md and memory/*.md files
+- Curated, high-quality context
+- Lower token usage
+
+**Sessions only:**
+```json
+"sources": ["sessions"]
+```
+- Only indexes past conversation transcripts
+- Full conversation history
+- Higher token usage
+
+**Both (Recommended):**
+```json
+"sources": ["memory", "sessions"]
+```
+- Complete context from both sources
+- Best recall capability
+- Balanced approach
 
 ## Daily Log Format
 
-Create `memory/YYYY-MM-DD.md` daily:
+Create `memory/logs/YYYY-MM-DD.md` daily:
 
 ```markdown
-# YYYY-MM-DD — Daily Log
+# 2026-02-04 — Daily Log
 
-## [Time] — [Event/Task]
-- What happened
-- Decisions made
-- Follow-ups needed
+## 10:30 — Fixed SearXNG Network
+- Changed sandbox network to openclaw-internal
+- Web search now working in sandboxes
+- Tested with "OpenClaw" query
 
-## [Time] — [Another Event]
-- Details
+## 14:15 — Enabled Elevated Mode
+- Set tools.elevated.enabled: true
+- User can control via /elevated command
+- Approved commands run on gateway host
+
+## Follow-ups
+- Monitor memory usage after changes
+- Test browser automation with real sites
 ```
 
-## Agent Instructions (Already in AGENTS.md)
+## Verification
 
-Your AGENTS.md already includes memory instructions. The agent should:
-1. Read `MEMORY.md` in main sessions only (not shared contexts)
-2. Read today + yesterday's daily logs on session start
-3. Update `MEMORY.md` periodically with curated learnings
+Test memory is working:
+
+**1. Check config:**
+```bash
+openclaw config get memorySearch
+```
+
+**2. Test search:**
+```
+User: "What do you remember about [past topic]?"
+Agent: [Should search memory and return relevant context]
+```
 
 ## Troubleshooting
 
 ### Memory search not working?
+
+**Check configuration:**
 ```bash
-# Check status
-openclaw memory status
+openclaw config get memorySearch.enabled
+# Should return: true
+```
 
-# Check config
-openclaw config get agents.defaults.memorySearch
+**Verify MEMORY.md exists:**
+```bash
+ls -la ~/openclaw-workspace/MEMORY.md
+```
 
-# Reindex
-openclaw memory index --verbose
-
-# Restart gateway
+**Restart gateway:**
+```bash
 openclaw gateway restart
 ```
 
-### Provider errors?
-- **Local provider fails**: Model auto-downloads (~600MB). Wait for download to complete.
-- **OpenAI provider**: Set `OPENAI_API_KEY` environment variable
-- **Gemini provider**: Set `GEMINI_API_KEY` environment variable
-- **Recommended**: Use `local` provider with `fallback: "none"` to avoid API costs
+### Results not relevant?
 
-### Index location
-- Default: `~/.openclaw/memory/<agentId>.sqlite`
-- Check with: `openclaw memory status`
+**Lower threshold for more results:**
+```bash
+openclaw config set memorySearch.minScore 0.2
+```
 
-## Full Config Example (Local, No API Costs)
-
-```json
-{
-  "agents": {
-    "defaults": {
-      "memorySearch": {
-        "enabled": true,
-        "provider": "local",
-        "fallback": "none",
-        "sources": ["memory", "sessions"],
-        "local": {
-          "modelPath": "hf:ggml-org/embeddinggemma-300M-GGUF/embeddinggemma-300M-Q8_0.gguf"
-        }
-      }
-    }
-  }
-}
+**Increase max results:**
+```bash
+openclaw config set memorySearch.maxResults 30
 ```
 
 ## Why This Matters
 
-Without memory:
-- Agent forgets everything between sessions
-- Repeats questions, loses context
-- No continuity on projects
+**Without memory:**
+- ❌ Agent forgets everything between sessions
+- ❌ Repeats questions you've already answered
+- ❌ Loses context on ongoing projects
+- ❌ No continuity or relationship building
 
-With memory:
-- Recalls past conversations
-- Knows your preferences
-- Tracks project history
-- Builds relationship over time
+**With memory:**
+- ✅ Recalls past conversations and decisions
+- ✅ Knows your preferences and style
+- ✅ Tracks project history and progress
+- ✅ Builds continuity over time
 
-Goldfish → Elephant. 🐘
-
-## VPS Deployment Notes
-
-For your Coolify deployment:
-- Memory index stored in `openclaw-config` volume (persists across restarts)
-- MEMORY.md and daily logs in `openclaw-workspace` volume (persists)
-- Local embeddings model cached in container (downloads once)
-- No additional API keys needed if using `local` provider
+Goldfish 🐠 → Elephant 🐘

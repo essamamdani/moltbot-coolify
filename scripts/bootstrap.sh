@@ -101,6 +101,10 @@ if [ ! -f "$CONFIG_FILE" ]; then
     ],
     "install": {
       "nodeManager": "npm"
+    },
+    "load": {
+      "watch": true,
+      "watchDebounceMs": 1000
     }
   },
   "gateway": {
