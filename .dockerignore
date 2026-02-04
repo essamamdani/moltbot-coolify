@@ -15,3 +15,5 @@ LICENSE
 .github/
 *.md
 !scripts/*.md
+!SOUL.md
+!BOOTSTRAP.md
