@@ -19,3 +19,11 @@ SETUP-COMPLETE.md
 openclaw-security-setup.md
 health-check.sh
 setup-*.sh
+
+# Temporary analysis and troubleshooting docs (keep repo clean)
+*_INVESTIGATION.md
+*_FIX.md
+*_IMPLEMENTATION_PLAN.md
+*_GUIDE.md
+*-config-backup.json
+*-config-template.json
