@@ -26,7 +26,7 @@ services:
       context: .
       args:
         - OPENCLAW_BETA=${OPENCLAW_BETA:-false}
-    restart: on-failure:10
+    restart: unless-stopped
     
     # -------------------------------------------------------------------------
     # RESOURCE LIMITS (Prevent DoS / runaway costs)
