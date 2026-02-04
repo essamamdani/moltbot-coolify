@@ -396,19 +396,25 @@ ssh ***REMOVED-VPS*** "docker network inspect coolify | grep Subnet"
 - **DO NOT commit** analysis docs, troubleshooting guides, or temporary files
 - Keep the repo focused on production deployment
 
-### 4. Minimal Documentation
-- **DO NOT create** excessive documentation files after resolving issues
-- Provide guidance and solutions **in chat** whenever possible
-- Only create docs if they're essential for deployment or future reference
-- Delete temporary analysis files after issues are resolved
+### 4. NO Unnecessary Reports or Documentation
+- **DO NOT create** reports, summaries, or documentation files after completing tasks
+- **DO NOT create** analysis documents, assessment files, or review reports
+- Provide guidance and solutions **in chat only**
+- Only create docs if explicitly requested by the user
+- Delete temporary files immediately after use
 
-### 5. Understand Infrastructure First
+### 5. VPS Command Requirements
+- **ALWAYS use sudo** for elevated commands on the VPS
+- Example: `ssh ***REMOVED-VPS*** "sudo docker ps"` not `ssh ***REMOVED-VPS*** "docker ps"`
+- Example: `ssh ***REMOVED-VPS*** "sudo /root/script.sh"` not `ssh ***REMOVED-VPS*** "/root/script.sh"`
+
+### 6. Understand Infrastructure First
 - **Study OpenClaw architecture** before making changes
 - Understand: Gateway, Sandbox, Skills, Agents, Sessions, Channels
 - Know how Coolify orchestration works (webhook → build → deploy)
 - Understand persistent volumes and what survives container recreation
 
-### 6. Repository Hygiene
+### 7. Repository Hygiene
 - Keep local repo clean from unnecessary files
 - Remove scripts that aren't needed for production
 - Don't accumulate analysis documents

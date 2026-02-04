@@ -147,7 +147,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
         "scope": "session",
         "docker": {
           "readOnlyRoot": true,
-          "network": "bridge",
+          "network": "qsw0sgsgwcog4wg88g448sgs_openclaw-internal",
           "capDrop": ["ALL"],
           "pidsLimit": 256,
           "memory": "1g",
