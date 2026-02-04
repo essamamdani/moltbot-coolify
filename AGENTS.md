@@ -500,4 +500,161 @@ ssh ***REMOVED-VPS*** "sudo /root/openclaw-health-check.sh"
 
 ---
 
+## Lessons Learned & Common Issues
+
+This section documents issues encountered during setup and their solutions. Future agents should check here first when troubleshooting similar problems.
+
+### Issue 1: Skills Not Showing Up in Agent
+
+**Symptom:** Agent reports "No external skills installed" even though skills exist in repository.
+
+**Root Cause:** Skills directory wasn't being copied from the Docker image to the workspace volume during container startup.
+
+**Solution:**
+1. Added `COPY skills/ /app/skills/` to Dockerfile (Layer 12)
+2. Updated `scripts/bootstrap.sh` to copy skills from `/app/skills/` to `/root/openclaw-workspace/skills/` on startup
+3. Same approach for `workspace-files/` directory
+
+**Key Learning:** Files in the Docker image need to be explicitly copied to persistent volumes during bootstrap. The workspace volume starts empty on first run.
+
+**Files Modified:**
+- `Dockerfile` - Added COPY commands for skills and workspace-files
+- `scripts/bootstrap.sh` - Added copy logic in bootstrap process
+
+### Issue 2: Docker Build Fails with "File Not Found"
+
+**Symptom:** Build fails with error like `"/SOUL.md": not found` or `"/BOOTSTRAP.md": not found` even though files exist in repository and are tracked by git.
+
+**Root Cause:** `.dockerignore` file contained `*.md` which excluded ALL markdown files from the Docker build context.
+
+**Solution:**
+Updated `.dockerignore` to explicitly allow required markdown files:
+```
+*.md
+!scripts/*.md
+!SOUL.md
+!BOOTSTRAP.md
+```
+
+**Key Learning:** Always check `.dockerignore` when Docker can't find files that exist in the repository. The `!` prefix creates exceptions to exclusion rules.
+
+**Files Modified:**
+- `.dockerignore` - Added exceptions for SOUL.md and BOOTSTRAP.md
+
+### Issue 3: Skills Installed via ClawHub Not Persisting
+
+**Symptom:** Skills installed with `clawhub install <skill>` are available in sandboxes but not in the main agent workspace.
+
+**Root Cause:** ClawHub installs skills to sandbox directories (`/root/.openclaw/sandboxes/*/skills/`) which are ephemeral and don't persist to the main workspace.
+
+**Solution:**
+- Repository-based skills (in `skills/` directory) are the recommended approach
+- These are copied to `/root/openclaw-workspace/skills/` during bootstrap
+- Skills persist across container restarts because workspace is a Docker volume
+
+**Key Learning:** For production deployments, include skills in the repository rather than relying on runtime installation via ClawHub.
+
+**Current Skills:**
+- `sandbox-manager/` - Manage Docker sandboxes with Cloudflare tunnels
+- `web-utils/` - Web search (SearXNG), scraping, summarization
+
+### Issue 4: SKILL.md Frontmatter Formatting
+
+**Symptom:** Skills exist but aren't recognized by OpenClaw.
+
+**Root Cause:** YAML frontmatter in `SKILL.md` was malformed (metadata outside the `---` delimiters).
+
+**Solution:**
+Ensure SKILL.md follows this format:
+```markdown
+---
+name: skill-name
+description: Skill description
+metadata:
+  openclaw:
+    emoji: 🔧
+    requires:
+      bins: ["curl"]
+---
+
+# Skill Documentation
+...
+```
+
+**Key Learning:** OpenClaw parses SKILL.md frontmatter strictly. All metadata must be between the `---` delimiters.
+
+**Files Modified:**
+- `skills/web-utils/SKILL.md` - Fixed frontmatter formatting
+
+### Issue 5: Bootstrap Script References Missing Files
+
+**Symptom:** Bootstrap script tries to copy `./SOUL.md` and `./BOOTSTRAP.md` but they don't exist in the container's working directory.
+
+**Root Cause:** Bootstrap script runs from `/app/` but referenced files with relative paths that assumed they were in the current directory.
+
+**Solution:**
+- Copy `SOUL.md` and `BOOTSTRAP.md` to `/app/` in Dockerfile
+- Bootstrap script can then reference them as `./SOUL.md` and `./BOOTSTRAP.md`
+
+**Key Learning:** When bootstrap scripts reference files, ensure those files are copied to the same directory in the Dockerfile.
+
+**Files Modified:**
+- `Dockerfile` - Added `COPY SOUL.md /app/` and `COPY BOOTSTRAP.md /app/`
+
+### Deployment Troubleshooting Checklist
+
+When a deployment fails, check in this order:
+
+1. **Check Coolify build logs** - Look for the actual error message
+2. **Verify .dockerignore** - Ensure required files aren't excluded
+3. **Check Dockerfile COPY commands** - Verify all referenced files exist
+4. **Validate file paths** - Ensure paths are relative to build context
+5. **Check git tracking** - Run `git ls-files <filename>` to verify file is tracked
+6. **Test locally** - Run `docker-compose build` to catch issues before pushing
+7. **Check environment variables** - Verify all required vars are set in Coolify
+
+### Skills Development Best Practices
+
+When adding new skills:
+
+1. **Create proper structure:**
+   ```
+   skills/
+   └── skill-name/
+       ├── SKILL.md          # Metadata and documentation
+       └── scripts/          # Executable scripts
+           └── action.sh
+   ```
+
+2. **SKILL.md must have valid frontmatter** - Use `---` delimiters
+
+3. **Make scripts executable** - Dockerfile handles this with `find /app/skills -type f -name "*.sh" -exec chmod +x {} \;`
+
+4. **Test in container** - After rebuild, verify skill appears in agent's skill list
+
+5. **Document in AGENTS.md** - Add to "Add New Skills" section
+
+### Docker Build Optimization
+
+The Dockerfile is layered for optimal caching:
+- **Layers 1-11:** Rarely change (system packages, tools, OpenClaw)
+- **Layer 12:** Changes frequently (scripts, skills, workspace files)
+
+**Key Learning:** Put frequently-changing files (scripts, skills) in the last layer to maximize cache hits and speed up rebuilds.
+
+### Persistent vs Ephemeral Storage
+
+**Persistent (survives container restart):**
+- `/root/.openclaw` - Agent config, sessions, credentials
+- `/root/openclaw-workspace` - Agent workspace, skills, memory
+
+**Ephemeral (lost on container restart):**
+- `/tmp` - Temporary files (200MB tmpfs)
+- `/var/tmp` - Temporary files (100MB tmpfs)
+- `/run` - Runtime files (50MB tmpfs)
+
+**Key Learning:** Never store important data in `/tmp` or other tmpfs mounts. Use workspace volume for persistence.
+
+---
+
 **Remember:** All changes must be made locally and pushed to GitHub. Coolify handles the deployment automatically. Never edit files directly on the VPS!
