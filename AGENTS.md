@@ -827,6 +827,35 @@ Before deploying changes, verify:
 - **Coolify Docs:** https://coolify.io/docs
 - **This Repo:** https://github.com/amraly83/openclaw-coolify
 
+## Task-Based Model Assignment
+
+This deployment uses **task-based model assignment** to optimize costs while maintaining quality.
+
+**Configuration:** See `TASK_BASED_MODELS.md` for detailed documentation.
+
+**Quick Summary:**
+- **Main Agent:** Claude Opus 4.5 Thinking (complex reasoning & coding)
+- **Heartbeats:** Gemini 3 Flash (30min intervals, 200x cheaper)
+- **Sub-agents:** Gemini 3 Flash (cost-effective delegation)
+- **Vision:** Gemini 3 Flash (excellent vision, cheap)
+- **Fallbacks:** Gemini Flash → Mistral Large → Codestral
+
+**Model Aliases:**
+- `/model opus` - Claude Opus 4.5 Thinking
+- `/model flash` - Gemini 3 Flash
+- `/model mistral` - Mistral Large
+- `/model codestral` - Codestral
+
+**Cost Savings:** ~75% reduction vs using Opus for everything
+
+**Check Models:**
+```bash
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw models status"
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw models list"
+```
+
+---
+
 ## Quick Reference
 
 ```bash

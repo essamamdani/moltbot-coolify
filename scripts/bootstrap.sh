@@ -67,7 +67,7 @@ seed_agent "main" "OpenClaw"
 # Generate Config with Prime Directive
 # ----------------------------
 if [ ! -f "$CONFIG_FILE" ]; then
-  echo "Generating openclaw.json with Prime Directive..."
+  echo "Generating openclaw.json with task-based model assignment..."
   TOKEN=$(openssl rand -hex 24 2>/dev/null || node -e "console.log(require('crypto').randomBytes(24).toString('hex'))")
   cat >"$CONFIG_FILE" <<EOF
 {
@@ -135,20 +135,39 @@ if [ ! -f "$CONFIG_FILE" ]; then
       "elevatedDefault": "full",
       "cliBackends": {},
       "model": {
-        "primary": "google-antigravity/claude-3-5-sonnet",
-        "fallbacks": ["mistral/mistral-large-latest", "mistral/codestral-latest"]
+        "primary": "google-antigravity/claude-opus-4-5-thinking",
+        "fallbacks": [
+          "google-antigravity/gemini-3-flash",
+          "mistral/mistral-large-latest",
+          "mistral/codestral-latest"
+        ]
+      },
+      "models": {
+        "google-antigravity/claude-opus-4-5-thinking": { "alias": "opus" },
+        "google-antigravity/gemini-3-flash": { "alias": "flash" },
+        "mistral/mistral-large-latest": { "alias": "mistral" },
+        "mistral/codestral-latest": { "alias": "codestral" }
       },
       "systemPrompt": "You are a highly capable AI assistant. Be professional, thorough, and proactive. When given tasks, break them down systematically and execute with precision. Always verify your work.",
       "heartbeat": {
-        "every": "1h"
+        "every": "30m",
+        "model": "google-antigravity/gemini-3-flash",
+        "target": "last"
       },
-      "maxConcurrent": 4,
       "subagents": {
-        "maxConcurrent": 8
+        "model": "google-antigravity/gemini-3-flash",
+        "maxConcurrent": 4,
+        "archiveAfterMinutes": 60
       },
+      "imageModel": {
+        "primary": "google-antigravity/gemini-3-flash",
+        "fallbacks": ["google-antigravity/claude-opus-4-5-thinking"]
+      },
+      "contextTokens": 200000,
+      "maxConcurrent": 4,
       "sandbox": {
         "mode": "all",
-        "workspaceAccess": "none",
+        "workspaceAccess": "rw",
         "scope": "session",
         "docker": {
           "readOnlyRoot": true,
@@ -173,7 +192,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
       }
     },
     "list": [
-      { "id": "main","default": true, "name": "default",  "workspace": "/root/openclaw-workspace"}
+      { "id": "main", "default": true, "name": "default", "workspace": "/root/openclaw-workspace" }
     ]
   },
   "messages": {
