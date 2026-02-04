@@ -1,58 +1,49 @@
 #!/bin/bash
-# Post-Bootstrap Configuration
-# This script runs after OpenClaw gateway is up and configures additional features
+# Post-Bootstrap Setup Script
+# Runs after OpenClaw bootstrap to configure features
 
 set -e
 
-echo "🦞 Running Post-Bootstrap Configuration..."
+echo "🦞 Running Post-Bootstrap Setup..."
+echo ""
 
 # Wait for gateway to be fully ready
-echo "⏳ Waiting for OpenClaw gateway to be ready..."
+echo "⏳ Waiting for gateway to be ready..."
 sleep 10
 
-# Check if gateway is responding
-if ! openclaw status &>/dev/null; then
-    echo "⚠️  Gateway not ready yet, waiting longer..."
-    sleep 20
+# Check if gateway is running
+if ! openclaw status > /dev/null 2>&1; then
+    echo "⚠️  Gateway not ready yet, skipping post-bootstrap setup"
+    echo "   Setup scripts can be run manually later"
+    exit 0
 fi
 
-# 1. Configure Security
+echo "✅ Gateway is ready"
 echo ""
-echo "🔒 Step 1/3: Configuring Exec Security..."
-if [ -f /app/scripts/configure-security.sh ]; then
-    bash /app/scripts/configure-security.sh
-else
-    echo "⚠️  Security configuration script not found"
-fi
 
-# 2. Install Skills
+# Check web search configuration
+echo "1️⃣  Checking web search configuration..."
+bash /app/scripts/configure-security.sh
 echo ""
-echo "📦 Step 2/3: Installing Essential Skills..."
-if [ -f /app/scripts/install-skills.sh ]; then
-    bash /app/scripts/install-skills.sh
-else
-    echo "⚠️  Skills installation script not found"
-fi
 
-# 3. Setup Cron Jobs
+# Install skills
+echo "2️⃣  Installing skills..."
+bash /app/scripts/install-skills.sh
 echo ""
-echo "📅 Step 3/3: Setting Up Monitoring Cron Jobs..."
-if [ -f /app/scripts/setup-cron-jobs.sh ]; then
-    bash /app/scripts/setup-cron-jobs.sh
-else
-    echo "⚠️  Cron setup script not found"
-fi
 
+# Display cron job instructions
+echo "3️⃣  Cron job setup instructions..."
+bash /app/scripts/setup-cron-jobs.sh
 echo ""
-echo "✅ Post-Bootstrap Configuration Complete!"
+
+# Restart gateway to load skills
+echo "4️⃣  Restarting gateway to load skills..."
+openclaw gateway restart 2>&1 || echo "⚠️  Gateway restart will happen automatically"
 echo ""
-echo "📋 Summary:"
-echo "   ✅ Exec security configured (allowlist + approvals)"
-echo "   ✅ Essential skills installed (github, weather, summarize, session-logs)"
-echo "   ✅ Monitoring cron jobs created (health check, security audit, backup reminder)"
+
+echo "🎉 Post-bootstrap setup complete!"
 echo ""
-echo "⚠️  IMPORTANT: Configure Brave API key for web search:"
-echo "   1. Get key from: https://brave.com/search/api/"
-echo "   2. Add to Coolify: BRAVE_API_KEY=your-key-here"
-echo "   3. Restart deployment"
-echo ""
+echo "💡 Next steps:"
+echo "   1. Add BRAVE_API_KEY to Coolify (if not already set)"
+echo "   2. Create cron jobs via Telegram bot (see instructions above)"
+echo "   3. Test features: web search, skills, browser automation"

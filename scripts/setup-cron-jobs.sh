@@ -1,43 +1,34 @@
 #!/bin/bash
 # Setup OpenClaw Monitoring Cron Jobs
-# This script creates automated health checks and security audits
+# Note: Cron jobs should be created via Telegram bot or dashboard
+# The CLI syntax for cron jobs has changed in OpenClaw 2026.2.2-3
 
 set -e
 
-echo "🦞 Setting up OpenClaw Monitoring Cron Jobs..."
-
-# Daily health check at 2 AM
-echo "📅 Creating daily health check job..."
-openclaw cron add \
-  --name "daily-health-check" \
-  --schedule "0 2 * * *" \
-  --message "Run health check: Check container status, memory usage (report if >80%), recent errors in logs, and sandbox count. If everything is OK, just say 'Health check passed ✅'. If issues found, report them with details." \
-  2>&1 || echo "⚠️  Health check job may already exist"
-
-# Weekly security audit on Sundays at 3 AM
-echo "🔒 Creating weekly security audit job..."
-openclaw cron add \
-  --name "weekly-security-audit" \
-  --schedule "0 3 * * 0" \
-  --message "Run 'openclaw security audit --deep' and report findings. If no critical or warning issues, just say 'Security audit passed ✅'. If issues found, report them with recommended actions." \
-  2>&1 || echo "⚠️  Security audit job may already exist"
-
-# Daily backup reminder at 3 AM
-echo "💾 Creating daily backup reminder..."
-openclaw cron add \
-  --name "daily-backup-reminder" \
-  --schedule "0 3 * * *" \
-  --message "Check if workspace backup exists from today. If not, remind to run backup. Workspace is at /root/openclaw-workspace and should be backed up regularly." \
-  2>&1 || echo "⚠️  Backup reminder job may already exist"
-
+echo "🦞 OpenClaw Monitoring Cron Jobs Setup"
 echo ""
-echo "🎉 Cron jobs configured successfully!"
+echo "⚠️  Note: Cron jobs are best created via Telegram bot or dashboard"
 echo ""
-echo "📋 Current cron jobs:"
-openclaw cron list
-
+echo "📋 Recommended cron jobs to create:"
 echo ""
-echo "💡 Tips:"
-echo "   - View cron history: openclaw cron runs"
-echo "   - Test a job now: openclaw cron run --name daily-health-check"
-echo "   - Remove a job: openclaw cron rm --name <job-name>"
+echo "1️⃣  Daily Health Check (2 AM)"
+echo "   Message your bot on Telegram:"
+echo "   'Create a cron job that runs daily at 2 AM to check system health"
+echo "   (container status, memory usage, errors, sandbox count)."
+echo "   Report only if issues found.'"
+echo ""
+echo "2️⃣  Weekly Security Audit (Sunday 3 AM)"
+echo "   Message your bot on Telegram:"
+echo "   'Create a cron job that runs every Sunday at 3 AM to run"
+echo "   openclaw security audit --deep and report findings."
+echo "   Report only if critical or warning issues found.'"
+echo ""
+echo "3️⃣  Daily Backup Reminder (3 AM)"
+echo "   Message your bot on Telegram:"
+echo "   'Create a cron job that runs daily at 3 AM to check if"
+echo "   workspace backup exists from today. Remind if not backed up.'"
+echo ""
+echo "💡 After creating jobs, verify with:"
+echo "   openclaw cron list"
+echo ""
+echo "✅ Cron setup instructions displayed"
