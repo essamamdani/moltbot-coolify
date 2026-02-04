@@ -1,4 +1,10 @@
-FROM node:lts-bookworm-slim
+# syntax=docker/dockerfile:1
+# Multi-stage build for optimal caching with BuildKit
+# Each stage builds on the previous, with COPY . . only in the final stage
+# BuildKit features: cache mounts, parallel builds, improved layer caching
+
+# Stage 1: Base system dependencies (rarely changes)
+FROM node:lts-bookworm-slim AS base
 
 # Prevent interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -18,7 +24,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     lsof \
     openssl \
     ca-certificates \
-    ca-certificates \
     gnupg \
     ripgrep fd-find fzf bat \
     pandoc \
@@ -29,7 +34,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     sqlite3 \
     pass \
     chromium \
+    unzip \
     && rm -rf /var/lib/apt/lists/*
+
+# Stage 2: System CLI tools (change occasionally)
+FROM base AS system-tools
 
 # Install Docker CE CLI (Latest) to support API 1.44+
 RUN install -m 0755 -d /etc/apt/keyrings && \
@@ -43,12 +52,10 @@ RUN install -m 0755 -d /etc/apt/keyrings && \
     apt-get install -y docker-ce-cli && \
     rm -rf /var/lib/apt/lists/*
 
-
 # Install Go (Latest)
 RUN curl -L "https://go.dev/dl/go1.23.4.linux-amd64.tar.gz" -o go.tar.gz && \
     tar -C /usr/local -xzf go.tar.gz && \
     rm go.tar.gz
-ENV PATH="/usr/local/go/bin:${PATH}"
 
 # Install Cloudflare Tunnel (cloudflared)
 RUN ARCH=$(dpkg --print-architecture) && \
@@ -68,33 +75,30 @@ RUN mkdir -p -m 755 /etc/apt/keyrings && \
 # Install uv (Python tool manager)
 ENV UV_INSTALL_DIR="/usr/local/bin"
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Stage 3: Language runtimes and package managers (change sometimes)
+FROM system-tools AS runtimes
+
+ENV BUN_INSTALL_NODE=0 \
+    BUN_INSTALL="/data/.bun" \
+    PATH="/usr/local/go/bin:/data/.bun/bin:/data/.bun/install/global/bin:$PATH"
+
 # Install Bun
-ENV BUN_INSTALL_NODE=0
-ENV BUN_INSTALL="/data/.bun"
-RUN apt-get update && apt-get install -y unzip && rm -rf /var/lib/apt/lists/* && \
-    curl -fsSL https://bun.sh/install | bash
-ENV PATH="/data/.bun/bin:/data/.bun/install/global/bin:${PATH}"
-
-# Install Vercel, Marp, QMD
-RUN bun install -g vercel @marp-team/marp-cli https://github.com/tobi/qmd && hash -r
-
-# Configure QMD Persistence
-ENV XDG_CACHE_HOME="/data/.cache"
+RUN curl -fsSL https://bun.sh/install | bash
 
 # Python tools
 RUN pip3 install ipython csvkit openpyxl python-docx pypdf botasaurus browser-use playwright --break-system-packages && \
     playwright install-deps
 
-
+# Configure QMD Persistence
+ENV XDG_CACHE_HOME="/data/.cache"
 
 # Debian aliases
 RUN ln -s /usr/bin/fdfind /usr/bin/fd || true && \
     ln -s /usr/bin/batcat /usr/bin/bat || true
 
-WORKDIR /app
-
-# ✅ FINAL PATH (important)
-ENV PATH="/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin:/data/.local/bin:/data/.npm-global/bin:/data/.bun/bin:/data/.bun/install/global/bin:/data/.claude/bin:/data/.kimi/bin:/root/go/bin"
+# Stage 4: Application dependencies (package installations)
+FROM runtimes AS dependencies
 
 # OpenClaw install
 ARG OPENCLAW_BETA=false
@@ -102,7 +106,15 @@ ENV OPENCLAW_BETA=${OPENCLAW_BETA} \
     OPENCLAW_NO_ONBOARD=1 \
     NPM_CONFIG_UNSAFE_PERM=true
 
-RUN if [ "$OPENCLAW_BETA" = "true" ]; then \
+# Install Vercel, Marp, QMD with BuildKit cache mount for faster rebuilds
+RUN --mount=type=cache,target=/data/.bun/install/cache \
+    bun install -g vercel @marp-team/marp-cli https://github.com/tobi/qmd && hash -r && \
+    bun pm -g untrusted && \
+    bun install -g @openai/codex @google/gemini-cli opencode-ai @steipete/summarize @hyperbrowser/agent clawhub
+
+# Install OpenClaw with npm cache mount
+RUN --mount=type=cache,target=/data/.npm \
+    if [ "$OPENCLAW_BETA" = "true" ]; then \
     npm install -g openclaw@beta; \
     else \
     npm install -g openclaw; \
@@ -114,16 +126,17 @@ RUN if [ "$OPENCLAW_BETA" = "true" ]; then \
     exit 1; \
     fi
 
-RUN bun pm -g untrusted
 # AI Tool Suite & ClawHub
-RUN bun install -g @openai/codex @google/gemini-cli opencode-ai @steipete/summarize @hyperbrowser/agent clawhub && \
-    curl -fsSL https://claude.ai/install.sh | bash && \
+RUN curl -fsSL https://claude.ai/install.sh | bash && \
     curl -L https://code.kimi.com/install.sh | bash
 
+# Stage 5: Final application stage (changes frequently)
+FROM dependencies AS final
 
-
+WORKDIR /app
 
 # Copy everything (obeying .dockerignore)
+# This is the only layer that changes on code updates
 COPY . .
 
 # Specialized symlinks and permissions
@@ -132,6 +145,8 @@ RUN ln -sf /data/.claude/bin/claude /usr/local/bin/claude 2>/dev/null || true &&
     ln -sf /app/scripts/openclaw-approve.sh /usr/local/bin/openclaw-approve && \
     chmod +x /app/scripts/*.sh /usr/local/bin/openclaw-approve
 
+# ✅ FINAL PATH (important)
+ENV PATH="/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin:/data/.local/bin:/data/.npm-global/bin:/data/.bun/bin:/data/.bun/install/global/bin:/data/.claude/bin:/data/.kimi/bin:/root/go/bin"
 
 EXPOSE 18789
 CMD ["bash", "/app/scripts/bootstrap.sh"]
