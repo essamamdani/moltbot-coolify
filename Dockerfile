@@ -148,15 +148,18 @@ RUN curl -fsSL https://claude.ai/install.sh | bash && \
     curl -L https://code.kimi.com/install.sh | bash
 
 # ============================================
-# LAYER 12: Scripts (changes frequently - LAST!)
+# LAYER 12: Scripts & Skills (changes frequently - LAST!)
 # ============================================
 WORKDIR /app
 
-# Copy ONLY scripts directory
+# Copy scripts and skills directories
 COPY scripts/ /app/scripts/
+COPY skills/ /app/skills/
+COPY SOUL.md BOOTSTRAP.md /app/
 
 # Set permissions and create symlinks
 RUN chmod +x /app/scripts/*.sh && \
+    find /app/skills -type f -name "*.sh" -exec chmod +x {} \; && \
     ln -sf /root/.claude/bin/claude /usr/local/bin/claude 2>/dev/null || true && \
     ln -sf /root/.kimi/bin/kimi /usr/local/bin/kimi 2>/dev/null || true && \
     ln -sf /app/scripts/openclaw-approve.sh /usr/local/bin/openclaw-approve
