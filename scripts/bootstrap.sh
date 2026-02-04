@@ -132,6 +132,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
       "workspace": "$WORKSPACE_DIR",
       "envelopeTimestamp": "on",
       "envelopeElapsed": "on",
+      "elevatedDefault": "full",
       "cliBackends": {},
       "model": {
         "primary": "google-antigravity/claude-3-5-sonnet",
