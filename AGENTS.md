@@ -1062,7 +1062,7 @@ Before deploying changes, verify:
 
 This deployment uses **task-based model assignment** to optimize costs while maintaining quality.
 
-**Configuration:** See `TASK_BASED_MODELS.md` for detailed documentation.
+**Configuration:** Applied on 2026-02-05 using safe production config modification procedure.
 
 **Quick Summary:**
 - **Main Agent:** Claude Opus 4.5 Thinking (complex reasoning & coding)
@@ -1084,6 +1084,258 @@ This deployment uses **task-based model assignment** to optimize costs while mai
 ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw models status"
 ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw models list"
 ```
+
+### How to Safely Modify Production Config (Reference Procedure)
+
+**This is the EXACT procedure used to apply task-based model assignments. Use this as a template for future config changes.**
+
+#### Step 1: Identify Container Name
+```bash
+ssh ***REMOVED-VPS*** "sudo docker ps --filter name=openclaw-qsw --format '{{.Names}}' | head -1"
+# Output: ***REMOVED-DEPLOYMENT-ID***-234724397157
+```
+
+#### Step 2: Create Backup (MANDATORY)
+```bash
+# Backup in Docker volume (persists across container restarts)
+ssh ***REMOVED-VPS*** "sudo cp /var/lib/docker/volumes/qsw0sgsgwcog4wg88g448sgs_openclaw-config/_data/openclaw.json /var/lib/docker/volumes/qsw0sgsgwcog4wg88g448sgs_openclaw-config/_data/openclaw.json.backup-DESCRIPTION"
+
+# Replace DESCRIPTION with what you're changing, e.g.:
+# openclaw.json.backup-task-based
+# openclaw.json.backup-before-channel-update
+```
+
+#### Step 3: Verify Backup Exists
+```bash
+ssh ***REMOVED-VPS*** "sudo ls -la /var/lib/docker/volumes/qsw0sgsgwcog4wg88g448sgs_openclaw-config/_data/*.backup*"
+```
+
+#### Step 4: Apply Changes Using Python (Safest Method)
+
+**Why Python?** 
+- Preserves JSON structure
+- Validates syntax automatically
+- Atomic write (all or nothing)
+- Easy to verify before applying
+
+**Create Python script locally:**
+```python
+import json
+
+# Read current config
+with open("/root/.openclaw/openclaw.json", "r") as f:
+    config = json.load(f)
+
+# Make your changes here
+# Example: Update heartbeat
+config["agents"]["defaults"]["heartbeat"] = {
+    "every": "30m",
+    "model": "google-antigravity/gemini-3-flash",
+    "target": "last"
+}
+
+# Write back to file
+with open("/root/.openclaw/openclaw.json", "w") as f:
+    json.dump(config, f, indent=2)
+
+print("SUCCESS: Configuration updated!")
+```
+
+**Execute on container:**
+```bash
+# Method 1: Pipe script to container (RECOMMENDED)
+@'
+import json
+with open("/root/.openclaw/openclaw.json", "r") as f:
+    config = json.load(f)
+# ... your changes ...
+with open("/root/.openclaw/openclaw.json", "w") as f:
+    json.dump(config, f, indent=2)
+print("SUCCESS!")
+'@ | ssh ***REMOVED-VPS*** "sudo docker exec -i <container-name> python3"
+
+# Method 2: Create script file in container
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> bash -c 'cat > /tmp/update.py << EOF
+import json
+# ... your script ...
+EOF
+python3 /tmp/update.py'"
+```
+
+#### Step 5: Verify Changes (Before Restart)
+```bash
+# Check specific keys were updated
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw config get agents.defaults.heartbeat"
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw config get agents.defaults.subagents"
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw config get agents.defaults.imageModel"
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw config get agents.defaults.models"
+
+# Verify JSON is valid
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> python3 -c 'import json; json.load(open(\"/root/.openclaw/openclaw.json\"))' && echo 'JSON is valid'"
+```
+
+#### Step 6: Restart Gateway to Apply
+```bash
+ssh ***REMOVED-VPS*** "sudo docker restart <container-name>"
+
+# Wait for startup (30-45 seconds)
+timeout /t 45
+
+# Or check status until healthy
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw status"
+```
+
+#### Step 7: Verify System is Working
+```bash
+# Check gateway is running
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw status"
+
+# Check models are configured correctly
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw models status"
+
+# Check channels are connected
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw status --deep"
+```
+
+#### Step 8: Test Functionality
+```bash
+# Test model aliases work
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw models list"
+
+# Check heartbeat frequency
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw status" | grep "Heartbeat"
+
+# Verify sessions are active
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw status" | grep "Sessions"
+```
+
+### Rollback Procedure (If Something Goes Wrong)
+
+```bash
+# 1. Restore from backup
+ssh ***REMOVED-VPS*** "sudo cp /var/lib/docker/volumes/qsw0sgsgwcog4wg88g448sgs_openclaw-config/_data/openclaw.json.backup-DESCRIPTION /var/lib/docker/volumes/qsw0sgsgwcog4wg88g448sgs_openclaw-config/_data/openclaw.json"
+
+# 2. Restart gateway
+ssh ***REMOVED-VPS*** "sudo docker restart <container-name>"
+
+# 3. Verify system is back to working state
+ssh ***REMOVED-VPS*** "sudo docker exec <container-name> openclaw status"
+```
+
+### Example: Task-Based Model Assignment Changes
+
+**Exact Python script used:**
+```python
+import json
+
+with open("/root/.openclaw/openclaw.json", "r") as f:
+    config = json.load(f)
+
+# 1. Add Gemini Flash to fallbacks (first position)
+fallbacks = config["agents"]["defaults"]["model"]["fallbacks"]
+if "google-antigravity/gemini-3-flash" not in fallbacks:
+    fallbacks.insert(0, "google-antigravity/gemini-3-flash")
+
+# 2. Add model aliases
+config["agents"]["defaults"]["models"] = {
+    "google-antigravity/claude-opus-4-5-thinking": {"alias": "opus"},
+    "google-antigravity/gemini-3-flash": {"alias": "flash"},
+    "mistral/mistral-large-latest": {"alias": "mistral"},
+    "mistral/codestral-latest": {"alias": "codestral"}
+}
+
+# 3. Update heartbeat (30m + Gemini Flash)
+config["agents"]["defaults"]["heartbeat"] = {
+    "every": "30m",
+    "model": "google-antigravity/gemini-3-flash",
+    "target": "last"
+}
+
+# 4. Update subagents
+config["agents"]["defaults"]["subagents"] = {
+    "model": "google-antigravity/gemini-3-flash",
+    "maxConcurrent": 4,
+    "archiveAfterMinutes": 60
+}
+
+# 5. Add imageModel
+config["agents"]["defaults"]["imageModel"] = {
+    "primary": "google-antigravity/gemini-3-flash",
+    "fallbacks": ["google-antigravity/claude-opus-4-5-thinking"]
+}
+
+# 6. Remove agent-specific model override
+if "model" in config["agents"]["list"][0]:
+    del config["agents"]["list"][0]["model"]
+
+with open("/root/.openclaw/openclaw.json", "w") as f:
+    json.dump(config, f, indent=2)
+
+print("SUCCESS: Task-based model configuration applied!")
+```
+
+**Execution command:**
+```bash
+@'
+import json
+with open("/root/.openclaw/openclaw.json", "r") as f:
+    config = json.load(f)
+fallbacks = config["agents"]["defaults"]["model"]["fallbacks"]
+if "google-antigravity/gemini-3-flash" not in fallbacks:
+    fallbacks.insert(0, "google-antigravity/gemini-3-flash")
+config["agents"]["defaults"]["models"] = {
+    "google-antigravity/claude-opus-4-5-thinking": {"alias": "opus"},
+    "google-antigravity/gemini-3-flash": {"alias": "flash"},
+    "mistral/mistral-large-latest": {"alias": "mistral"},
+    "mistral/codestral-latest": {"alias": "codestral"}
+}
+config["agents"]["defaults"]["heartbeat"] = {
+    "every": "30m",
+    "model": "google-antigravity/gemini-3-flash",
+    "target": "last"
+}
+config["agents"]["defaults"]["subagents"] = {
+    "model": "google-antigravity/gemini-3-flash",
+    "maxConcurrent": 4,
+    "archiveAfterMinutes": 60
+}
+config["agents"]["defaults"]["imageModel"] = {
+    "primary": "google-antigravity/gemini-3-flash",
+    "fallbacks": ["google-antigravity/claude-opus-4-5-thinking"]
+}
+if "model" in config["agents"]["list"][0]:
+    del config["agents"]["list"][0]["model"]
+with open("/root/.openclaw/openclaw.json", "w") as f:
+    json.dump(config, f, indent=2)
+print("SUCCESS: Task-based model configuration applied!")
+'@ | ssh ***REMOVED-VPS*** "sudo docker exec -i ***REMOVED-DEPLOYMENT-ID***-234724397157 python3"
+```
+
+### Key Principles for Safe Config Changes
+
+1. **ALWAYS backup first** - No exceptions
+2. **Use Python for JSON** - Preserves structure, validates syntax
+3. **Verify before restart** - Check config with `openclaw config get`
+4. **Test after restart** - Verify system is working
+5. **Keep backups** - Don't delete old backups
+6. **Document changes** - Note what you changed and why
+7. **Have rollback ready** - Know how to undo before you start
+
+### Common Mistakes to Avoid
+
+❌ **DON'T** edit JSON manually with sed/awk (breaks structure)
+❌ **DON'T** delete the config file and recreate (loses settings)
+❌ **DON'T** skip backup step (no recovery if something breaks)
+❌ **DON'T** restart without verifying changes first
+❌ **DON'T** make multiple unrelated changes at once
+❌ **DON'T** forget to check the backup exists
+
+✅ **DO** use Python for JSON manipulation
+✅ **DO** create timestamped backups
+✅ **DO** verify changes before restart
+✅ **DO** test system after restart
+✅ **DO** make one logical change at a time
+✅ **DO** keep a log of what you changed
 
 ---
 
