@@ -119,13 +119,14 @@ RUN bun install -g \
 # LAYER 10: OpenClaw (changes on version bump)
 # ============================================
 ARG OPENCLAW_BETA=false
+ARG OPENCLAW_VERSION=2026.2.2-3
 ENV OPENCLAW_NO_ONBOARD=1 \
     NPM_CONFIG_UNSAFE_PERM=true
 
 RUN if [ "$OPENCLAW_BETA" = "true" ]; then \
         npm install -g openclaw@beta; \
     else \
-        npm install -g openclaw@latest; \
+        npm install -g openclaw@${OPENCLAW_VERSION}; \
     fi && \
     openclaw --version
 
