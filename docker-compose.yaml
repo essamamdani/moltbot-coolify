@@ -171,8 +171,14 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:18789/"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 60s
+      retries: 5
+      start_period: 90s
+    
+    # -------------------------------------------------------------------------
+    # PORT EXPOSURE (Critical for Traefik routing)
+    # -------------------------------------------------------------------------
+    expose:
+      - "18789"
     
     # -------------------------------------------------------------------------
     # STARTUP COMMAND
@@ -191,7 +197,17 @@ services:
       - "coolify.healthcheck.interval=30s"
       - "coolify.healthcheck.timeout=10s"
       - "coolify.healthcheck.retries=3"
-      - "coolify.healthcheck.start_period=60s"
+      - "coolify.healthcheck.start_period=90s"
+      
+      # Traefik service configuration (helps Traefik find the service)
+      - "traefik.enable=true"
+      - "traefik.http.services.openclaw.loadbalancer.server.port=18789"
+      - "traefik.http.services.openclaw.loadbalancer.server.scheme=http"
+      
+      # Health check for Traefik
+      - "traefik.http.services.openclaw.loadbalancer.healthcheck.path=/"
+      - "traefik.http.services.openclaw.loadbalancer.healthcheck.interval=30s"
+      - "traefik.http.services.openclaw.loadbalancer.healthcheck.timeout=10s"
       
       # Rate limiting middleware (prevents DoS/brute force)
       - "traefik.http.middlewares.openclaw-ratelimit.ratelimit.average=100"
