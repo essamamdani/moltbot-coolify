@@ -179,6 +179,14 @@ services:
     # NOTE: Do NOT define custom routers here - Coolify auto-generates them
     # with proper variable substitution. We only define middleware configs.
     labels:
+      # Coolify healthcheck configuration
+      - "coolify.healthcheck.enabled=true"
+      - "coolify.healthcheck.path=/"
+      - "coolify.healthcheck.interval=30s"
+      - "coolify.healthcheck.timeout=10s"
+      - "coolify.healthcheck.retries=3"
+      - "coolify.healthcheck.start_period=60s"
+      
       # Rate limiting middleware (prevents DoS/brute force)
       - "traefik.http.middlewares.openclaw-ratelimit.ratelimit.average=100"
       - "traefik.http.middlewares.openclaw-ratelimit.ratelimit.burst=50"
