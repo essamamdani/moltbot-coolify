@@ -2,6 +2,39 @@
 
 This repository contains a security-hardened OpenClaw deployment for Coolify with Docker Compose.
 
+## 🚨 CRITICAL RULE: NO CHANGES WITHOUT APPROVAL
+
+**NEVER implement fixes, changes, or configurations without explicit user approval first.**
+
+**Required workflow:**
+1. **Identify the issue** - Explain what's wrong
+2. **Propose solution** - Describe what you want to change and why
+3. **Wait for approval** - User must explicitly say "yes", "do it", "apply", etc.
+4. **Then implement** - Only after approval, make the changes
+
+**Examples of what requires approval:**
+- Configuration changes (docker-compose.yaml, bootstrap.sh, etc.)
+- Installing packages or dependencies
+- Modifying environment variables
+- Changing security settings
+- Updating documentation
+- ANY file modifications
+
+**Exceptions (no approval needed):**
+- Reading files to understand the system
+- Searching documentation
+- Explaining concepts
+- Proposing solutions (without implementing)
+- Answering questions
+
+**If you implement changes without approval, you have violated this rule.**
+
+This rule exists because:
+- User needs to understand what's changing
+- Changes may have unintended consequences
+- User may have different preferences
+- Transparency and control are essential
+
 ## 📖 Single Source of Truth
 
 **CRITICAL:** Before working on this repository, read `OPENCLAW_COMPREHENSIVE_GUIDE.md` in the root directory.
@@ -377,6 +410,17 @@ ssh ***REMOVED-VPS*** "docker network inspect coolify | grep Subnet"
 ## Critical Rules for AI Agents
 
 **IMPORTANT:** These rules must be followed when working on this repository:
+
+### 0. NEVER IMPLEMENT WITHOUT APPROVAL (MOST CRITICAL)
+- **NEVER implement fixes, changes, or configurations without explicit user approval first**
+- **Required workflow:**
+  1. Identify the issue and explain what's wrong
+  2. Propose solution with clear explanation of what will change
+  3. Wait for explicit approval ("yes", "do it", "apply", "implement", etc.)
+  4. Only then implement the changes
+- **What requires approval:** ALL file modifications, configuration changes, installations, updates
+- **What doesn't require approval:** Reading files, searching docs, explaining concepts, proposing solutions
+- **If you implement without approval, you have violated this critical rule**
 
 ### 1. Research Before Implementation
 - **NEVER invent solutions** - Always check official OpenClaw documentation first
