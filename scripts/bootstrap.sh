@@ -148,7 +148,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
         "mistral/mistral-large-latest": { "alias": "mistral" },
         "mistral/codestral-latest": { "alias": "codestral" }
       },
-      "systemPrompt": "You are a highly capable AI assistant. Be professional, thorough, and proactive. When given tasks, break them down systematically and execute with precision. Always verify your work.",
       "heartbeat": {
         "every": "30m",
         "model": "google-antigravity/gemini-3-flash",
@@ -179,11 +178,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
           "cpus": 1,
           "user": "1000:1000",
           "tmpfs": ["/tmp", "/var/tmp", "/run"]
-        },
-        "browser": {
-          "enabled": true,
-          "autoStart": true,
-          "autoStartTimeoutMs": 30000
         },
         "prune": {
           "idleHours": 24,
@@ -217,9 +211,6 @@ if [ ! -f "$CONFIG_FILE" ]; then
       "fetch": {
         "enabled": true
       }
-    },
-    "browser": {
-      "enabled": true
     }
   },
   "logging": {
