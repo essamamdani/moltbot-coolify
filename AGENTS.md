@@ -358,6 +358,48 @@ If you see "Proxy headers detected from untrusted address":
 ssh netcup "docker network inspect coolify | grep Subnet"
 ```
 
+## Critical Rules for AI Agents
+
+**IMPORTANT:** These rules must be followed when working on this repository:
+
+### 1. Research Before Implementation
+- **NEVER invent solutions** - Always check official OpenClaw documentation first
+- Search trusted sources (GitHub issues, official forums, community discussions)
+- Understand the official approach before proposing changes
+- Reference: https://docs.openclaw.ai/
+
+### 2. Validate All Changes
+- **Always verify** changes after completing a task
+- Test functionality before committing
+- Check container health and logs
+- Verify configuration with `openclaw status` and `openclaw config get`
+
+### 3. Keep Repository Clean
+- **DO NOT commit** files that aren't required for building the image
+- Only commit: Dockerfile, docker-compose.yaml, scripts/, searxng/, .gitignore, .env.example
+- **DO NOT commit** analysis docs, troubleshooting guides, or temporary files
+- Keep the repo focused on production deployment
+
+### 4. Minimal Documentation
+- **DO NOT create** excessive documentation files after resolving issues
+- Provide guidance and solutions **in chat** whenever possible
+- Only create docs if they're essential for deployment or future reference
+- Delete temporary analysis files after issues are resolved
+
+### 5. Understand Infrastructure First
+- **Study OpenClaw architecture** before making changes
+- Understand: Gateway, Sandbox, Skills, Agents, Sessions, Channels
+- Know how Coolify orchestration works (webhook → build → deploy)
+- Understand persistent volumes and what survives container recreation
+
+### 6. Repository Hygiene
+- Keep local repo clean from unnecessary files
+- Remove scripts that aren't needed for production
+- Don't accumulate analysis documents
+- Use `.gitignore` to exclude temporary files
+
+---
+
 ## Best Practices
 
 ### 1. Never Commit Secrets
