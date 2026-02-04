@@ -41,40 +41,82 @@ This rule exists because:
 
 **ABSOLUTELY FORBIDDEN: Deleting ANY file from production without exhaustive validation.**
 
-### ⛔ BEFORE DELETING ANY PRODUCTION FILE:
+### ⛔ BEFORE DELETING ANY FILE (PRODUCTION OR REPOSITORY):
 
 **MANDATORY VALIDATION CHECKLIST (ALL MUST BE YES):**
 
-1. **Backup Verification**
+1. **Read and Understand the File**
+   - [ ] Have you READ the ENTIRE file content?
+   - [ ] Do you understand what this file does?
+   - [ ] Do you know why this file exists?
+   - [ ] Have you identified the file's purpose?
+   - [ ] Is this file documentation, configuration, code, or data?
+
+2. **Check References and Dependencies**
+   - [ ] Have you searched for references to this file in ALL other files?
+   - [ ] Is this file mentioned in README.md, AGENTS.md, or other docs?
+   - [ ] Do any scripts reference this file?
+   - [ ] Does any configuration import or include this file?
+   - [ ] Are there symbolic links pointing to this file?
+   - [ ] Do any processes or services depend on this file?
+
+3. **Backup Verification**
    - [ ] Does a recent backup of this file exist?
    - [ ] Can the backup be restored immediately?
    - [ ] Have you verified the backup is not corrupted?
    - [ ] Do you know the EXACT path to the backup?
 
-2. **Impact Analysis**
-   - [ ] Do you understand EXACTLY what this file does?
+4. **Impact Analysis**
    - [ ] Have you identified ALL systems that depend on this file?
    - [ ] Have you checked if this file contains critical configuration?
    - [ ] Have you verified no active processes are using this file?
    - [ ] Will deleting this file break any running services?
+   - [ ] Will deleting this file break the build/deployment process?
 
-3. **Alternative Solutions**
+5. **Alternative Solutions**
    - [ ] Have you tried fixing the file instead of deleting it?
    - [ ] Can you rename/move the file instead of deleting it?
    - [ ] Is there a way to solve the problem WITHOUT deletion?
    - [ ] Have you considered editing the file in-place?
 
-4. **Recovery Plan**
+6. **Recovery Plan**
    - [ ] Do you have a TESTED rollback procedure?
    - [ ] Can you restore the system in under 60 seconds?
    - [ ] Do you know the exact commands to undo the deletion?
    - [ ] Have you documented the recovery steps?
 
-5. **User Approval**
+7. **User Approval**
    - [ ] Have you explained the deletion to the user?
    - [ ] Have you explained the consequences?
    - [ ] Have you explained the recovery plan?
    - [ ] Has the user EXPLICITLY approved the deletion?
+
+### 📖 MANDATORY: READ BEFORE DELETE
+
+**YOU MUST READ EVERY FILE BEFORE CONSIDERING DELETION:**
+
+```bash
+# Step 1: READ the file
+cat /path/to/file
+# or for large files
+head -100 /path/to/file
+
+# Step 2: SEARCH for references
+grep -r "filename" .
+grep -r "/path/to/file" .
+
+# Step 3: CHECK documentation
+grep -r "filename" *.md
+grep -r "filename" docs/
+
+# Step 4: VERIFY not in use
+lsof /path/to/file
+fuser /path/to/file
+
+# Step 5: ONLY THEN consider deletion (with backup)
+```
+
+**NEVER delete a file you haven't read and understood.**
 
 ### ❌ NEVER DELETE THESE FILES:
 
