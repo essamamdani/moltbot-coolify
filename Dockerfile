@@ -148,14 +148,15 @@ RUN curl -fsSL https://claude.ai/install.sh | bash && \
     curl -L https://code.kimi.com/install.sh | bash
 
 # ============================================
-# LAYER 12: Scripts & Skills (changes frequently - LAST!)
+# LAYER 12: Scripts, Skills & Plugins (changes frequently - LAST!)
 # ============================================
 WORKDIR /app
 
-# Copy scripts, skills, and workspace files
+# Copy scripts, skills, workspace files, and plugins
 COPY scripts/ /app/scripts/
 COPY skills/ /app/skills/
 COPY workspace-files/ /app/workspace-files/
+COPY extensions/ /app/extensions/
 COPY SOUL.md /app/
 COPY BOOTSTRAP.md /app/
 

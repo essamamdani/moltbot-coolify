@@ -1,0 +1,18 @@
+{
+  "name": "@openclaw-coolify/telegram-enhanced",
+  "version": "1.0.0",
+  "description": "Enhanced Telegram support for OpenClaw with inline buttons and proper validation",
+  "main": "index.ts",
+  "type": "module",
+  "openclaw": {
+    "extensions": ["./index.ts"]
+  },
+  "keywords": [
+    "openclaw",
+    "telegram",
+    "inline-buttons",
+    "plugin"
+  ],
+  "author": "OpenClaw Coolify",
+  "license": "MIT"
+}

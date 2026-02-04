@@ -2,6 +2,10 @@
 .env
 .DS_Store
 
+# OpenClaw config (use openclaw-config-template.json as reference)
+openclaw.json
+openclaw-config-backup.json
+
 # Dependencies
 node_modules/
 

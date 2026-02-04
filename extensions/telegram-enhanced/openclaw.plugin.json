@@ -1,0 +1,63 @@
+{
+  "id": "telegram-enhanced",
+  "name": "Telegram Enhanced",
+  "description": "Enhanced Telegram support with inline buttons, proper target validation, and forum topic handling",
+  "version": "1.0.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "enableButtonTool": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable telegram_send tool with inline button support"
+      },
+      "enableButtonCommand": {
+        "type": "boolean",
+        "default": true,
+        "description": "Enable /buttons slash command for quick button sends"
+      },
+      "defaultButtons": {
+        "type": "array",
+        "description": "Default button template for /buttons command",
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": { "type": "string" },
+              "callback_data": { "type": "string" },
+              "url": { "type": "string" }
+            },
+            "required": ["text"]
+          }
+        },
+        "default": [
+          [
+            { "text": "✅ Yes", "callback_data": "yes" },
+            { "text": "❌ No", "callback_data": "no" }
+          ],
+          [
+            { "text": "ℹ️ More Info", "callback_data": "info" }
+          ]
+        ]
+      }
+    }
+  },
+  "uiHints": {
+    "enableButtonTool": {
+      "label": "Enable Button Tool",
+      "description": "Adds telegram_send tool for sending messages with inline buttons",
+      "placeholder": "true"
+    },
+    "enableButtonCommand": {
+      "label": "Enable /buttons Command",
+      "description": "Adds /buttons slash command for quick button sends",
+      "placeholder": "true"
+    },
+    "defaultButtons": {
+      "label": "Default Button Template",
+      "description": "Button layout used by /buttons command"
+    }
+  }
+}

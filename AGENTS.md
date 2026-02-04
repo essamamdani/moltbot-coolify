@@ -81,11 +81,14 @@ Deploy OpenClaw (AI assistant) on a VPS using Coolify with:
 ├── scripts/               # Bootstrap and setup scripts
 │   ├── bootstrap.sh       # Container startup script
 │   ├── sandbox-setup.sh   # Sandbox initialization
-│   └── openclaw-approve.sh # Machine approval helper
+│   ├── openclaw-approve.sh # Machine approval helper
+│   └── test-telegram-buttons.sh # Test Telegram inline buttons
 ├── searxng/               # Private search engine config
 │   ├── Dockerfile
 │   ├── settings.yml
 │   └── limiter.toml
+├── extensions/            # OpenClaw plugins
+│   └── telegram-enhanced/ # Telegram inline buttons plugin
 ├── docs/                  # OpenClaw documentation (reference)
 └── skills/                # Custom skills (sandbox-manager, web-utils)
 ```
@@ -236,6 +239,35 @@ To add a new skill:
 2. Add scripts in `skills/skill-name/scripts/`
 3. Commit and push
 4. Skill will be available after rebuild
+
+### Manage Plugins
+
+Plugins are in `/extensions/` directory:
+- `telegram-enhanced/` - Telegram inline buttons and enhanced features
+
+**Check plugin status:**
+```bash
+ssh ***REMOVED-VPS*** "docker exec <container-name> openclaw plugins list"
+```
+
+**Get plugin info:**
+```bash
+ssh ***REMOVED-VPS*** "docker exec <container-name> openclaw plugins info telegram-enhanced"
+```
+
+**Enable/disable plugin:**
+```bash
+ssh ***REMOVED-VPS*** "docker exec <container-name> openclaw plugins enable telegram-enhanced"
+ssh ***REMOVED-VPS*** "docker exec <container-name> openclaw plugins disable telegram-enhanced"
+```
+
+**Add new plugin:**
+1. Create `extensions/plugin-name/` directory
+2. Add `index.ts`, `openclaw.plugin.json`, `package.json`
+3. Commit and push (Dockerfile already copies extensions/)
+4. Plugin loads automatically on rebuild
+
+See "Plugins" section below for detailed documentation.
 
 ### Check Container Health
 
@@ -396,6 +428,38 @@ ssh ***REMOVED-VPS*** "docker exec <container-name> openclaw status --deep"
 ```
 3. Check logs for Telegram errors
 
+### Telegram Inline Buttons Not Working
+
+The repository includes a **Telegram Enhanced Plugin** that fixes inline button issues.
+
+**Features:**
+- ✅ Proper target validation (tg/group/telegram prefixes)
+- ✅ Forum topic support
+- ✅ Capability checking
+- ✅ `/buttons` slash command
+
+**Test buttons:**
+```bash
+# From local machine
+./scripts/test-telegram-buttons.sh @username
+
+# Or via SSH
+ssh ***REMOVED-VPS*** "docker exec <container-name> openclaw message send --channel telegram --target @user --message 'Test' --buttons '[[{\"text\":\"Yes\",\"callback_data\":\"yes\"}]]'"
+```
+
+**Usage in Telegram:**
+- Ask agent: "Send me a message with buttons"
+- Use command: `/buttons Do you want coffee?`
+- Agent tool: `telegram_send` with `buttons` parameter
+
+**Configuration:**
+Set `channels.telegram.capabilities.inlineButtons` to:
+- `all` - Allow in DMs and groups
+- `dm` - DMs only
+- `group` - Groups only
+- `allowlist` - Authorized senders only (default)
+- `off` - Disabled
+
 ### Gateway Proxy Warning
 
 If you see "Proxy headers detected from untrusted address":
@@ -463,6 +527,239 @@ ssh ***REMOVED-VPS*** "docker network inspect coolify | grep Subnet"
 - Remove scripts that aren't needed for production
 - Don't accumulate analysis documents
 - Use `.gitignore` to exclude temporary files
+
+---
+
+## Plugins
+
+This repository uses OpenClaw's plugin system for extensibility. Plugins are TypeScript modules that extend OpenClaw with tools, hooks, commands, and channels.
+
+### Installed Plugins
+
+#### Telegram Enhanced (`telegram-enhanced`)
+
+**Location:** `extensions/telegram-enhanced/`
+
+**Purpose:** Fixes Telegram inline button issues with proper target validation and enhanced features.
+
+**Features:**
+- ✅ **Inline Buttons** - Full support with capability validation
+- ✅ **Target Validation** - Handles all formats (numeric, @username, prefixed)
+- ✅ **Forum Topics** - Support for `message_thread_id`
+- ✅ **Agent Tool** - `telegram_send` with button parameter
+- ✅ **Slash Command** - `/buttons` for quick sends
+- ✅ **Error Messages** - Clear guidance on configuration
+
+**Configuration:**
+
+Plugin is enabled by default. To customize:
+
+```json
+{
+  "plugins": {
+    "entries": {
+      "telegram-enhanced": {
+        "enabled": true,
+        "config": {
+          "enableButtonTool": true,
+          "enableButtonCommand": true,
+          "defaultButtons": [
+            [
+              { "text": "✅ Yes", "callback_data": "yes" },
+              { "text": "❌ No", "callback_data": "no" }
+            ]
+          ]
+        }
+      }
+    }
+  },
+  "channels": {
+    "telegram": {
+      "capabilities": {
+        "inlineButtons": "all"
+      }
+    }
+  }
+}
+```
+
+**Usage Examples:**
+
+Via agent (natural language):
+```
+"Send me a message with Yes/No buttons asking if I want coffee"
+```
+
+Via slash command in Telegram:
+```
+/buttons Do you approve this deployment?
+```
+
+Via agent tool (structured):
+```json
+{
+  "tool": "telegram_send",
+  "to": "@username",
+  "message": "Choose an option:",
+  "buttons": [
+    [
+      { "text": "✅ Approve", "callback_data": "approve" },
+      { "text": "❌ Reject", "callback_data": "reject" }
+    ]
+  ]
+}
+```
+
+Via CLI:
+```bash
+openclaw message send --channel telegram --target @user \
+  --message "Test buttons" \
+  --buttons '[[{"text":"Yes","callback_data":"yes"}]]'
+```
+
+**Testing:**
+```bash
+# Local
+./scripts/test-telegram-buttons.sh @username
+
+# VPS
+ssh ***REMOVED-VPS*** "docker exec <container-name> bash /app/scripts/test-telegram-buttons.sh @username"
+```
+
+**Documentation:** See `extensions/telegram-enhanced/README.md`
+
+### Plugin Management
+
+**List plugins:**
+```bash
+ssh ***REMOVED-VPS*** "docker exec <container-name> openclaw plugins list"
+```
+
+**Get plugin info:**
+```bash
+ssh ***REMOVED-VPS*** "docker exec <container-name> openclaw plugins info telegram-enhanced"
+```
+
+**Enable/disable:**
+```bash
+ssh ***REMOVED-VPS*** "docker exec <container-name> openclaw plugins enable telegram-enhanced"
+ssh ***REMOVED-VPS*** "docker exec <container-name> openclaw plugins disable telegram-enhanced"
+```
+
+**Check plugin status:**
+```bash
+ssh ***REMOVED-VPS*** "docker exec <container-name> openclaw plugins doctor"
+```
+
+### Adding New Plugins
+
+**Step 1: Create Plugin Structure**
+
+```bash
+mkdir -p extensions/my-plugin
+cd extensions/my-plugin
+```
+
+**Step 2: Create Plugin Files**
+
+```
+extensions/my-plugin/
+├── index.ts                    # Plugin code
+├── openclaw.plugin.json        # Manifest with config schema
+├── package.json                # Package metadata
+└── README.md                   # Documentation
+```
+
+**Step 3: Write Plugin Code**
+
+```typescript
+// index.ts
+export default function (api) {
+  // Register tool
+  api.registerTool({
+    name: "my_tool",
+    description: "Does something useful",
+    parameters: { /* TypeBox schema */ },
+    async execute(_id, params) {
+      // Tool implementation
+      return { content: [{ type: "text", text: "Result" }] };
+    }
+  });
+  
+  // Register command
+  api.registerCommand({
+    name: "mycommand",
+    description: "Quick action",
+    handler: async (ctx) => {
+      return { text: "Done!" };
+    }
+  });
+}
+```
+
+**Step 4: Create Manifest**
+
+```json
+{
+  "id": "my-plugin",
+  "name": "My Plugin",
+  "description": "Plugin description",
+  "version": "1.0.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "enabled": { "type": "boolean", "default": true }
+    }
+  }
+}
+```
+
+**Step 5: Deploy**
+
+```bash
+# Dockerfile already includes: COPY extensions/ /app/extensions/
+git add extensions/my-plugin
+git commit -m "Add my-plugin"
+git push origin main
+# Coolify rebuilds automatically
+```
+
+**Step 6: Configure**
+
+Add to `openclaw.json` (or configure via dashboard):
+
+```json
+{
+  "plugins": {
+    "load": {
+      "paths": ["/app/extensions/my-plugin"]
+    },
+    "entries": {
+      "my-plugin": {
+        "enabled": true,
+        "config": {}
+      }
+    }
+  }
+}
+```
+
+### Plugin Best Practices
+
+1. **Use TypeScript** - Type safety, better errors, IDE support
+2. **Config-driven** - Expose behavior via JSON Schema config
+3. **Error handling** - Clear error messages with guidance
+4. **Documentation** - Include README.md with examples
+5. **Testing** - Create test scripts in `scripts/`
+6. **Versioning** - Use semantic versioning in package.json
+7. **Dependencies** - Install in plugin dir if needed
+
+### Plugin Resources
+
+- **Official Docs:** https://docs.openclaw.ai/plugin
+- **Plugin API:** https://docs.openclaw.ai/plugins/agent-tools
+- **Examples:** `extensions/telegram-enhanced/`
+- **Comprehensive Guide:** `OPENCLAW_COMPREHENSIVE_GUIDE.md`
 
 ---
 
