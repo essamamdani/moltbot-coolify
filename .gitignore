@@ -1,6 +1,11 @@
 # Secrets
 .env
+
+# System files
 .DS_Store
+*.swp
+*.swo
+*~
 
 # OpenClaw config (use openclaw-config-template.json as reference)
 openclaw.json
@@ -12,7 +17,10 @@ node_modules/
 # Build
 .next/
 dist/
-# docs/
+
+# Deployment logs and temporary files
+deployment.log
+*.log
 
 # Local documentation and setup scripts (not needed for build)
 SETUP-COMPLETE.md
@@ -24,10 +32,18 @@ setup-*.sh
 *_INVESTIGATION.md
 *_FIX.md
 *_IMPLEMENTATION_PLAN.md
+*_ANALYSIS.md
+*_SUMMARY.md
+*_CHANGELOG.md
+*_GUIDE.md
+*_CONFIGURATION.md
 *-config-backup.json
 *-config-template.json
 
-# Keep optimization documentation
-!OPTIMIZATION_CHANGELOG.md
-!OPTIMIZATION_SUMMARY.md
-!DEPLOYMENT_GUIDE.md
+# Images (unless specifically needed)
+*.jpg
+*.jpeg
+*.png
+!docs/**/*.jpg
+!docs/**/*.jpeg
+!docs/**/*.png
