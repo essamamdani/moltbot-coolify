@@ -1,4 +1,7 @@
-FROM node:22-bookworm
+# =============================================================================
+# STAGE 1: BASE IMAGE WITH SYSTEM DEPENDENCIES
+# =============================================================================
+FROM node:22-bookworm AS base
 
 # Prevent interactive prompts
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -96,7 +99,8 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 # ============================================
 # LAYER 8: Python packages (rarely changes - cached)
 # ============================================
-RUN pip3 install --break-system-packages \
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip3 install --break-system-packages \
     ipython \
     csvkit \
     openpyxl \
@@ -104,12 +108,16 @@ RUN pip3 install --break-system-packages \
     pypdf \
     botasaurus \
     browser-use \
-    playwright && \
-    playwright install-deps && \
+    playwright
+
+# ============================================
+# LAYER 9: Playwright browsers (separate for better caching)
+# ============================================
+RUN playwright install-deps && \
     playwright install chromium
 
 # ============================================
-# LAYER 9: Global Bun packages (rarely changes - cached)
+# LAYER 10: Global Bun packages (rarely changes - cached)
 # ============================================
 RUN bun install -g \
     vercel \
@@ -117,14 +125,15 @@ RUN bun install -g \
     https://github.com/tobi/qmd
 
 # ============================================
-# LAYER 10: OpenClaw (changes on version bump)
+# LAYER 11: OpenClaw (changes on version bump)
 # ============================================
 ARG OPENCLAW_BETA=false
 ARG OPENCLAW_VERSION=2026.2.2-3
 ENV OPENCLAW_NO_ONBOARD=1 \
     NPM_CONFIG_UNSAFE_PERM=true
 
-RUN if [ "$OPENCLAW_BETA" = "true" ]; then \
+RUN --mount=type=cache,target=/root/.npm \
+    if [ "$OPENCLAW_BETA" = "true" ]; then \
         npm install -g openclaw@beta; \
     else \
         npm install -g openclaw@${OPENCLAW_VERSION}; \
@@ -132,7 +141,7 @@ RUN if [ "$OPENCLAW_BETA" = "true" ]; then \
     openclaw --version
 
 # ============================================
-# LAYER 11: AI Tool Suite (changes occasionally)
+# LAYER 12: AI Tool Suite (changes occasionally)
 # ============================================
 RUN bun pm -g untrusted && \
     bun install -g \
@@ -147,8 +156,13 @@ RUN bun pm -g untrusted && \
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
     curl -L https://code.kimi.com/install.sh | bash
 
+# =============================================================================
+# STAGE 2: RUNTIME IMAGE
+# =============================================================================
+FROM base AS runtime
+
 # ============================================
-# LAYER 12: Scripts, Skills & Plugins (changes frequently - LAST!)
+# LAYER 13: Scripts, Skills & Plugins (changes frequently - LAST!)
 # ============================================
 WORKDIR /app
 

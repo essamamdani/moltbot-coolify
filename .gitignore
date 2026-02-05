@@ -24,6 +24,10 @@ setup-*.sh
 *_INVESTIGATION.md
 *_FIX.md
 *_IMPLEMENTATION_PLAN.md
-*_GUIDE.md
 *-config-backup.json
 *-config-template.json
+
+# Keep optimization documentation
+!OPTIMIZATION_CHANGELOG.md
+!OPTIMIZATION_SUMMARY.md
+!DEPLOYMENT_GUIDE.md

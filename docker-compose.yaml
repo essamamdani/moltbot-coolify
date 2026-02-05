@@ -156,6 +156,7 @@ services:
     volumes:
       - openclaw-config:/root/.openclaw
       - openclaw-workspace:/root/openclaw-workspace
+      - openclaw-home:/home/node  # Persist Playwright browsers & tool caches
     
     # -------------------------------------------------------------------------
     # DEPENDENCIES
@@ -165,13 +166,13 @@ services:
         condition: service_healthy
     
     # -------------------------------------------------------------------------
-    # HEALTHCHECK
+    # HEALTHCHECK (Using OpenClaw's built-in health check)
     # -------------------------------------------------------------------------
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:18789/"]
+      test: ["CMD", "openclaw", "health"]
       interval: 30s
       timeout: 10s
-      retries: 5
+      retries: 3
       start_period: 90s
     
     # -------------------------------------------------------------------------
@@ -339,5 +340,7 @@ volumes:
     name: openclaw-config
   openclaw-workspace:
     name: openclaw-workspace
+  openclaw-home:
+    name: openclaw-home  # Persists Playwright browsers, npm cache, tool caches
   searxng-data:
     name: searxng-data

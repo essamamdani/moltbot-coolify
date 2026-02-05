@@ -170,7 +170,7 @@ if [ ! -f "$CONFIG_FILE" ]; then
         "scope": "session",
         "docker": {
           "readOnlyRoot": true,
-          "network": "qsw0sgsgwcog4wg88g448sgs_openclaw-internal",
+          "network": "DYNAMIC_NETWORK_PLACEHOLDER",
           "capDrop": ["ALL"],
           "pidsLimit": 256,
           "memory": "1g",
@@ -252,6 +252,40 @@ if [ ! -f "$CONFIG_FILE" ]; then
   }
 }
 EOF
+fi
+
+# ----------------------------
+# Fix dynamic sandbox network (if config exists)
+# ----------------------------
+if [ -f "$CONFIG_FILE" ]; then
+  # Detect the actual openclaw-internal network name
+  NETWORK_NAME=$(docker network ls --filter name=openclaw-internal --format "{{.Name}}" 2>/dev/null | head -1)
+  
+  if [ -n "$NETWORK_NAME" ]; then
+    # Check if config has placeholder or wrong network
+    CURRENT_NETWORK=$(grep -o '"network": "[^"]*"' "$CONFIG_FILE" | grep -o 'openclaw-internal' || echo "")
+    
+    if [ -z "$CURRENT_NETWORK" ] || grep -q "DYNAMIC_NETWORK_PLACEHOLDER" "$CONFIG_FILE"; then
+      echo "Updating sandbox network to: $NETWORK_NAME"
+      python3 << PYEOF
+import json
+try:
+    with open("$CONFIG_FILE", "r") as f:
+        config = json.load(f)
+    
+    if "agents" in config and "defaults" in config["agents"]:
+        if "sandbox" in config["agents"]["defaults"]:
+            if "docker" in config["agents"]["defaults"]["sandbox"]:
+                config["agents"]["defaults"]["sandbox"]["docker"]["network"] = "$NETWORK_NAME"
+                
+                with open("$CONFIG_FILE", "w") as f:
+                    json.dump(config, f, indent=2)
+                print(f"✅ Sandbox network updated to: $NETWORK_NAME")
+except Exception as e:
+    print(f"⚠️ Could not update network: {e}")
+PYEOF
+    fi
+  fi
 fi
 
 # ----------------------------
