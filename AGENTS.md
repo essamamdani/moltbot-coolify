@@ -364,7 +364,7 @@ Uses `tecnativa/docker-socket-proxy` to expose only required Docker APIs:
 
 **Credentials:**
 - **Username:** `admin`
-- **Password:** `***REMOVED-PASSWORD***`
+- **Password:** `OpenClaw2026Secure`
 
 **Why this was needed:**
 - OpenClaw's `gateway.bind="lan"` treats all LAN connections as trusted
@@ -549,7 +549,7 @@ git push origin main
 
 1. **HTTP Basic Auth (Traefik layer):**
    - Username: `admin`
-   - Password: `***REMOVED-PASSWORD***`
+   - Password: `OpenClaw2026Secure`
 
 2. **OpenClaw Token:**
    - Token: `***REMOVED-TOKEN***`
@@ -562,7 +562,7 @@ git push origin main
 
 **Access flow:**
 1. Open the URL in your browser
-2. Browser prompts for HTTP Basic Auth credentials (enter admin/***REMOVED-PASSWORD***)
+2. Browser prompts for HTTP Basic Auth credentials (enter admin/OpenClaw2026Secure)
 3. After Basic Auth succeeds, dashboard loads
 4. Dashboard connects to WebSocket using the token from URL parameter
 

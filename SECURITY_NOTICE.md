@@ -45,7 +45,7 @@ Two security issues were discovered and fixed:
 ### 4. Authentication Bypass Fix (CRITICAL)
 - ✅ Added HTTP Basic Auth middleware in Traefik
 - ✅ Two-layer authentication:
-  - Layer 1: HTTP Basic Auth (username: `admin`, password: `***REMOVED-PASSWORD***`)
+  - Layer 1: HTTP Basic Auth (username: `admin`, password: `OpenClaw2026Secure`)
   - Layer 2: OpenClaw token (`***REMOVED-TOKEN***`)
 - ✅ Updated `docker-compose.yaml` with Traefik middleware
 - ✅ Documented in `AGENTS.md`
@@ -69,7 +69,7 @@ Two security issues were discovered and fixed:
 
 **Layer 1 - HTTP Basic Auth:**
 - Username: `admin`
-- Password: `***REMOVED-PASSWORD***`
+- Password: `OpenClaw2026Secure`
 
 **Layer 2 - OpenClaw Token:**
 - Token: `***REMOVED-TOKEN***`

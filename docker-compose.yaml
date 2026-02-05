@@ -215,10 +215,10 @@ services:
       # =====================================================================
       # Adds a second layer of authentication before OpenClaw token auth
       # Username: admin
-      # Password: ***REMOVED-PASSWORD***
+      # Password: OpenClaw2026Secure (removed ! for compatibility)
       # This prevents the gateway.bind="lan" authentication bypass issue
-      # Using MD5 (APR1) hash format for better Traefik compatibility
-      - "traefik.http.middlewares.openclaw-auth.basicauth.users=admin:$$apr1$$niw9VH.n$$iSfHnACoimqZPkvx7swT0."
+      # Using MD5 (APR1) hash format for Traefik compatibility
+      - "traefik.http.middlewares.openclaw-auth.basicauth.users=admin:$$apr1$$HQDDUtpA$$8sopikR0hnnDrtWe2.JPl."
       - "traefik.http.middlewares.openclaw-auth.basicauth.realm=OpenClaw Dashboard"
       - "traefik.http.middlewares.openclaw-auth.basicauth.removeheader=true"
       
