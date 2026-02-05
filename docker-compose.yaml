@@ -60,7 +60,8 @@ services:
       - no-new-privileges:true
     
     # Read-only root filesystem - prevents malware persistence
-    read_only: true
+    # TEMPORARILY DISABLED to install google-workspace-mcp skill
+    read_only: false
     
     # Temp filesystems for runtime needs (in-memory, not persisted)
     tmpfs:
