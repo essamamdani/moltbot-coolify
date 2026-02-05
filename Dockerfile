@@ -156,6 +156,13 @@ RUN bun pm -g untrusted && \
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
     curl -L https://code.kimi.com/install.sh | bash
 
+# ============================================
+# LAYER 13: gog CLI (Google Workspace CLI)
+# ============================================
+RUN mkdir -p /root/.cache/go-build && \
+    GOTMPDIR=/root/.cache/go-build go install github.com/steipete/gogcli/cmd/gog@latest && \
+    ln -sf /root/go/bin/gog /usr/local/bin/gog
+
 # =============================================================================
 # STAGE 2: RUNTIME IMAGE
 # =============================================================================
