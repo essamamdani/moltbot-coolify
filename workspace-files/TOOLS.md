@@ -11,7 +11,7 @@ This file contains environment-specific details for your VPS deployment.
 - **Host:** ***REMOVED-VPS*** VPS
 - **SSH Command:** `ssh ***REMOVED-VPS***` (with sudo access)
 - **Dashboard:** ***REMOVED-URL***
-- **Token:** ***REMOVED-OLD-TOKEN***
+- **Token:** (stored securely in container - use `openclaw config get gateway.auth.token` to retrieve)
 
 ### Container Information
 - **Naming Pattern:** `openclaw-qsw0sgwcog4wg88g448sgs-<timestamp>`
