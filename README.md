@@ -13,8 +13,9 @@ Unlike SaaS assistants where your data lives on someone else’s servers, OpenCl
 1.  Open your Coolify Dashboard.
 2.  Navigate to **Project** > **New**.
 3.  Select **Public Repository**.
-4.  Enter the URL: `https://github.com/essamamdani/openclaw-coolify`
-5.  Click **Continue**.
+5.  Enter the URL: `https://github.com/essamamdani/openclaw-coolify`
+6.  Switch Build Pack to **Docker Compose**
+7.  Click **Continue**.
 
 ---
 
