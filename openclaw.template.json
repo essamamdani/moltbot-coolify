@@ -1,0 +1,68 @@
+{
+  "commands": {
+    "native": true,
+    "nativeSkills": true,
+    "text": true,
+    "bash": true,
+    "config": true,
+    "debug": true,
+    "restart": true,
+    "useAccessGroups": true
+  },
+  "plugins": {
+    "enabled": true,
+    "entries": {
+      "whatsapp": { "enabled": true },
+      "telegram": { "enabled": true },
+      "google-antigravity-auth": { "enabled": true }
+    }
+  },
+  "skills": {
+    "allowBundled": ["*"],
+    "install": { "nodeManager": "npm" },
+    "load": { "watch": true, "watchDebounceMs": 1000 }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "lan",
+    "controlUi": { "enabled": true, "allowInsecureAuth": false },
+    "auth": { "mode": "token", "token": "{{ACCESS_TOKEN}}" }
+  },
+  "agents": {
+    "defaults": {
+      "workspace": "/root/openclaw-workspace",
+      "elevatedDefault": "ask",
+      "model": {
+        "primary": "google-antigravity/claude-opus-4-5-thinking",
+        "fallbacks": [
+          "google-antigravity/gemini-3-flash",
+          "mistral/mistral-large-latest"
+        ]
+      },
+      "models": {
+        "google-antigravity/claude-opus-4-5-thinking": { "alias": "opus" },
+        "google-antigravity/gemini-3-flash": { "alias": "flash" }
+      },
+      "heartbeat": {
+        "every": "30m",
+        "model": "google-antigravity/gemini-3-flash"
+      },
+      "compaction": {
+        "mode": "safeguard",
+        "memoryFlush": { "enabled": true }
+      },
+      "sandbox": {
+        "mode": "all",
+        "scope": "session",
+        "docker": {
+          "readOnlyRoot": true,
+          "capDrop": ["ALL"],
+          "pidsLimit": 256,
+          "memory": "1g",
+          "tmpfs": ["/tmp", "/var/tmp", "/run"]
+        }
+      }
+    }
+  }
+}

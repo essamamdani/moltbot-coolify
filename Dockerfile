@@ -8,7 +8,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PIP_ROOT_USER_ACTION=ignore
 
 # ============================================
-# LAYER 1: System packages (rarely changes - cached)
+# LAYER 1: System packages
 # ============================================
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
@@ -43,7 +43,7 @@ RUN ln -s /usr/bin/fdfind /usr/bin/fd 2>/dev/null || true && \
     ln -s /usr/bin/batcat /usr/bin/bat 2>/dev/null || true
 
 # ============================================
-# LAYER 2: Docker CLI (rarely changes - cached)
+# LAYER 2: Docker CLI
 # ============================================
 RUN install -m 0755 -d /etc/apt/keyrings && \
     curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc && \
@@ -55,7 +55,7 @@ RUN install -m 0755 -d /etc/apt/keyrings && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# LAYER 3: Go (rarely changes - cached)
+# LAYER 3: Go
 # ============================================
 RUN curl -L "https://go.dev/dl/go1.23.4.linux-amd64.tar.gz" -o go.tar.gz && \
     tar -C /usr/local -xzf go.tar.gz && \
@@ -63,7 +63,7 @@ RUN curl -L "https://go.dev/dl/go1.23.4.linux-amd64.tar.gz" -o go.tar.gz && \
 ENV PATH="/usr/local/go/bin:/root/go/bin:${PATH}"
 
 # ============================================
-# LAYER 4: GitHub CLI (rarely changes - cached)
+# LAYER 4: GitHub CLI
 # ============================================
 RUN mkdir -p -m 755 /etc/apt/keyrings && \
     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
@@ -76,7 +76,7 @@ RUN mkdir -p -m 755 /etc/apt/keyrings && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================
-# LAYER 5: Cloudflared (rarely changes - cached)
+# LAYER 5: Cloudflared
 # ============================================
 RUN ARCH=$(dpkg --print-architecture) && \
     curl -L --output cloudflared.deb "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${ARCH}.deb" && \
@@ -84,20 +84,20 @@ RUN ARCH=$(dpkg --print-architecture) && \
     rm cloudflared.deb
 
 # ============================================
-# LAYER 6: Bun (rarely changes - cached)
+# LAYER 6: Bun
 # ============================================
 ENV BUN_INSTALL="/root/.bun"
 RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="/root/.bun/bin:/root/.bun/install/global/bin:${PATH}"
 
 # ============================================
-# LAYER 7: UV Python tool manager (rarely changes - cached)
+# LAYER 7: UV Python tool manager
 # ============================================
 ENV UV_INSTALL_DIR="/usr/local/bin"
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # ============================================
-# LAYER 8: Python packages (rarely changes - cached)
+# LAYER 8: Python packages
 # ============================================
 RUN --mount=type=cache,target=/root/.cache/pip \
     pip3 install --break-system-packages \
@@ -108,24 +108,28 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pypdf \
     botasaurus \
     browser-use \
-    playwright
+    playwright \
+    nano-pdf \
+    yt-dlp
 
 # ============================================
-# LAYER 9: Playwright browsers (separate for better caching)
+# LAYER 9: Playwright browsers
 # ============================================
 RUN playwright install-deps && \
     playwright install chromium
 
 # ============================================
-# LAYER 10: Global Bun packages (rarely changes - cached)
+# LAYER 10: Global Bun packages
 # ============================================
 RUN bun install -g \
     vercel \
     @marp-team/marp-cli \
+    @steipete/bird \
+    clawhub \
     https://github.com/tobi/qmd
 
 # ============================================
-# LAYER 11: OpenClaw (changes on version bump)
+# LAYER 11: OpenClaw
 # ============================================
 ARG OPENCLAW_BETA=false
 ARG OPENCLAW_VERSION=2026.2.2-3
@@ -141,7 +145,7 @@ RUN --mount=type=cache,target=/root/.npm \
     openclaw --version
 
 # ============================================
-# LAYER 12: AI Tool Suite (changes occasionally)
+# LAYER 12: AI Tool Suite
 # ============================================
 RUN bun pm -g untrusted && \
     bun install -g \
@@ -149,8 +153,7 @@ RUN bun pm -g untrusted && \
     @google/gemini-cli \
     opencode-ai \
     @steipete/summarize \
-    @hyperbrowser/agent \
-    clawhub
+    @hyperbrowser/agent
 
 # Claude CLI & Kimi CLI
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
@@ -169,7 +172,14 @@ RUN mkdir -p /root/.cache/go-build && \
 FROM base AS runtime
 
 # ============================================
-# LAYER 13: Scripts, Skills & Plugins (changes frequently - LAST!)
+# Runtime environment for writable tools
+# ============================================
+ENV PYTHONUSERBASE=/root/.openclaw/python \
+    NPM_CONFIG_PREFIX=/root/.openclaw/npm \
+    PATH="/root/.openclaw/npm/bin:/root/.openclaw/python/bin:${PATH}"
+
+# ============================================
+# LAYER 14: Scripts, Skills & Plugins
 # ============================================
 WORKDIR /app
 
@@ -189,10 +199,7 @@ RUN chmod +x /app/scripts/*.sh && \
     ln -sf /app/scripts/openclaw-approve.sh /usr/local/bin/openclaw-approve
 
 # ============================================
-# FINAL: Environment & Entrypoint
+# FINAL: Entrypoint
 # ============================================
-ENV PATH="/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin:/root/.local/bin:/root/.bun/bin:/root/.bun/install/global/bin:/root/.claude/bin:/root/.kimi/bin:/root/go/bin" \
-    XDG_CACHE_HOME="/root/.openclaw/cache"
-
 EXPOSE 18789
 CMD ["bash", "/app/scripts/bootstrap.sh"]
