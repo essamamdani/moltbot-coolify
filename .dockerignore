@@ -9,3 +9,6 @@ build
 docs/
 brain/
 tests/
+mission-control/node_modules
+mission-control/dist
+mission-control/.env

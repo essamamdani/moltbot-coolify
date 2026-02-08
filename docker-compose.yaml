@@ -82,10 +82,16 @@ services:
       # Optional
       OPENCLAW_BETA: ${OPENCLAW_BETA:-false}
 
+      # Mission Control (Convex)
+      CONVEX_URL: ${CONVEX_URL:-}
+      CONVEX_DEPLOY_KEY: ${CONVEX_DEPLOY_KEY:-}
+      MISSION_CONTROL_ENABLED: ${MISSION_CONTROL_ENABLED:-false}
+
     volumes:
       - openclaw-data:/data
       - openclaw-config:/root/.openclaw
       - openclaw-workspace:/root/openclaw-workspace
+      - mc-shared:/mc-shared
 
       # Secure: Socket mount removed in favor of proxy
       # - /var/run/docker.sock:/var/run/docker.sock
@@ -134,9 +140,29 @@ services:
       - SETGID
       - SETUID
 
+  mission-control:
+    build:
+      context: ./mission-control
+      args:
+        - VITE_CONVEX_URL=${CONVEX_URL:-}
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+    volumes:
+      - mc-shared:/mc-shared:ro
+    depends_on:
+      - openclaw
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
 volumes:
   openclaw-data:
   openclaw-config:
   openclaw-workspace:
+  mc-shared:
   searxng-data:
   registry-data:

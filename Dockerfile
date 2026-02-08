@@ -126,6 +126,10 @@ RUN --mount=type=cache,target=/data/.npm \
     exit 1; \
     fi
 
+# Mission Control: Convex CLI for agent-database interaction
+RUN --mount=type=cache,target=/data/.npm \
+    npm install -g convex
+
 # AI Tool Suite & ClawHub
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
     curl -L https://code.kimi.com/install.sh | bash
