@@ -85,7 +85,8 @@ services:
       # Mission Control (Convex)
       CONVEX_URL: ${CONVEX_URL:-}
       CONVEX_DEPLOY_KEY: ${CONVEX_DEPLOY_KEY:-}
-      MISSION_CONTROL_ENABLED: ${MISSION_CONTROL_ENABLED:-false}
+      # Force-enable Mission Control when Convex is configured
+      MISSION_CONTROL_ENABLED: ${MISSION_CONTROL_ENABLED:-true}
 
     ports:
       - "${OPENCLAW_GATEWAY_PORT:-18789}:18789"
@@ -148,6 +149,12 @@ services:
       args:
         - VITE_CONVEX_URL=${CONVEX_URL:-}
     restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Expose Convex URL at runtime for diagnostics/health (build-time already set via ARG)
+      VITE_CONVEX_URL: ${CONVEX_URL:-}
+      PORT: 3000
     expose:
       - "3000"
     ports:
@@ -160,8 +167,6 @@ services:
       - "traefik.http.routers.mission-control.service=mission-control"
       - "traefik.http.services.mission-control.loadbalancer.server.port=3000"
       - "traefik.docker.network=coolify"
-    environment:
-      PORT: 3000
     volumes:
       - mc-shared:/mc-shared:ro
     depends_on:
