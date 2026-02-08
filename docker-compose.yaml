@@ -193,48 +193,30 @@ services:
       - ./:/app:ro
       - openclaw-data:/data
     command: >
-      bash -lc '
-        set -e
-        if [ -z "$CONVEX_URL" ]; then
-          echo "convex-sync: CONVEX_URL not set, skipping."
+      bash -lc "set -e
+        if [ -z \"$CONVEX_URL\" ]; then
+          echo 'convex-sync: CONVEX_URL not set, skipping.'
           exit 0
         fi
+        apt-get update -qq && apt-get install -y -qq jq >/dev/null
         cd /app/mission-control
         # Ensure convex CLI is available (fetched on demand)
         npx --yes convex@1.17.0 --version >/dev/null
         # Deploy schema if key provided (idempotent)
-        if [ -n "$CONVEX_DEPLOY_KEY" ]; then
-          CONVEX_DEPLOY_KEY="$CONVEX_DEPLOY_KEY" npx convex deploy --url "$CONVEX_URL" || true
+        if [ -n \"$CONVEX_DEPLOY_KEY\" ]; then
+          CONVEX_DEPLOY_KEY=\"$CONVEX_DEPLOY_KEY\" npx convex deploy --url \"$CONVEX_URL\" || true
         fi
         # Register agents from openclaw.json (upsert)
-        node - <<\"NODE\"
-        const { execSync } = require("child_process");
-        const fs = require("fs");
-        const cfgPath = "/data/.openclaw/openclaw.json";
-        if (!fs.existsSync(cfgPath)) {
-          console.error("convex-sync: config not found at", cfgPath);
-          process.exit(0);
-        }
-        const cfg = JSON.parse(fs.readFileSync(cfgPath, "utf8"));
-        const agents = (cfg.agents && cfg.agents.list) || [];
-        for (const a of agents) {
-          const args = JSON.stringify({
-            agentId: a.id,
-            name: a.name || a.id,
-            role: a.role || "agent",
-            description: a.description || "Imported from openclaw.json",
-            heartbeatInterval: 900000,
-            avatar: a.avatar,
-          });
-          try {
-            console.log("convex-sync: registering", a.id);
-            execSync(`npx convex run agents:register --url "${process.env.CONVEX_URL}" --args '${args}'`, { stdio: "inherit" });
-          } catch (e) {
-            console.error("convex-sync: register failed for", a.id, e.message);
-          }
-        }
-        NODE
-      '
+        if [ ! -f /data/.openclaw/openclaw.json ]; then
+          echo 'convex-sync: config not found at /data/.openclaw/openclaw.json'
+          exit 0
+        fi
+        jq -c '.agents.list[]?' /data/.openclaw/openclaw.json | while read -r agent; do
+          args=$(echo \"$agent\" | jq -c '{agentId:.id,name:(.name//.id),role:(.role//\"agent\"),description:(.description//\"Imported from openclaw.json\"),heartbeatInterval:900000,avatar:.avatar}')
+          echo \"convex-sync: registering $(echo \"$args\" | jq -r .agentId)\"
+          npx convex run agents:register --url \"$CONVEX_URL\" --args \"$args\" || true
+        done
+      "
     restart: "no"
     depends_on:
       openclaw:
