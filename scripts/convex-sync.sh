@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
+set -x
 
 if [[ -z "${CONVEX_URL:-}" ]]; then
   echo "convex-sync: CONVEX_URL not set, skipping."
@@ -15,6 +16,16 @@ if [[ ! -f "$CFG_PATH" ]]; then
 fi
 
 cd "$MC_DIR"
+
+# Diagnostics
+ls -la /app/scripts || true
+ls -la "$MC_DIR" || true
+
+# Ensure npx is available
+if ! command -v npx >/dev/null 2>&1; then
+  echo "convex-sync: npx not found; installing npm (brings npx)..."
+  apt-get update -qq && apt-get install -y -qq npm >/dev/null
+fi
 
 # Ensure Convex CLI is available (fetched on demand)
 npx --yes convex@1.17.0 --version >/dev/null
