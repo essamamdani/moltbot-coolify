@@ -18,6 +18,10 @@ id_ed25519
 !.secrets-baseline.json
 !.github/SECURITY.md
 
+# Sensitive configuration files (keep local only)
+# AGENTS.md contains sensitive deployment info (tokens, passwords, VPS details)
+AGENTS.md
+
 # System files
 .DS_Store
 *.swp
