@@ -149,10 +149,13 @@ RUN --mount=type=cache,target=/root/.npm \
 RUN bun pm -g untrusted && \
     bun install -g \
     @openai/codex \
-    @google/gemini-cli \
     opencode-ai \
     @steipete/summarize \
     @hyperbrowser/agent
+
+# Install Gemini CLI via npm for better compatibility
+RUN --mount=type=cache,target=/root/.npm \
+    npm install -g @google/gemini-cli
 
 # Claude CLI & Kimi CLI
 RUN curl -fsSL https://claude.ai/install.sh | bash && \
