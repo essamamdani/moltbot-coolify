@@ -19,7 +19,7 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 
-const PORT = 18790;
+const PORT = parseInt(process.env.MC_SIDECAR_PORT || "18791", 10);
 const MC_SHARED_DIR = process.env.MC_SHARED_DIR || "/mc-shared";
 const CONFIG_FILE =
   process.env.OPENCLAW_CONFIG_FILE || "/data/.openclaw/openclaw.json";

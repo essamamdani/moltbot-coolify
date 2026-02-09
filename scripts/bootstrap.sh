@@ -325,12 +325,14 @@ echo "🔐 Dashboard password: $MC_DASH_PASSWORD"
 
 # Start Mission Control sidecar API (agent management) with auto-restart
 if [ -f scripts/mc-sidecar.js ]; then
-  echo "Starting Mission Control sidecar API on port 18790..."
+  MC_SIDECAR_PORT="${MC_SIDECAR_PORT:-18791}"
+  echo "Starting Mission Control sidecar API on port $MC_SIDECAR_PORT..."
   (
     while true; do
       MC_SHARED_DIR="$MC_SHARED_DIR" \
       OPENCLAW_CONFIG_FILE="$CONFIG_FILE" \
       OPENCLAW_STATE_DIR="$OPENCLAW_STATE" \
+      MC_SIDECAR_PORT="$MC_SIDECAR_PORT" \
       node scripts/mc-sidecar.js 2>&1 || true
       echo "[mc-sidecar] Crashed, restarting in 3s..."
       sleep 3
