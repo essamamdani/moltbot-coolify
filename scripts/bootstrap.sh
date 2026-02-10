@@ -44,7 +44,7 @@ fi
 # -----------------------------------------------------------------------------
 if [ ! -f "$CONFIG_FILE" ]; then
   echo "Generating openclaw.json from template..."
-  TOKEN=$(openssl rand -hex 24 2>/dev/null || node -e "console.log(require('crypto').randomBytes(24).toString('hex'))")
+  TOKEN="${OPENCLAW_GATEWAY_TOKEN:-$(openssl rand -hex 24 2>/dev/null || node -e "console.log(require('crypto').randomBytes(24).toString('hex'))")}"
   
   if [ -f "$TEMPLATE_FILE" ]; then
     sed "s/{{ACCESS_TOKEN}}/$TOKEN/g" "$TEMPLATE_FILE" > "$CONFIG_FILE"
@@ -58,6 +58,24 @@ if [ ! -f "$CONFIG_FILE" ]; then
 EOF
   fi
   echo "✅ Configuration generated"
+else
+  # Update token if OPENCLAW_GATEWAY_TOKEN is set
+  if [ -n "$OPENCLAW_GATEWAY_TOKEN" ]; then
+    echo "Updating gateway token from environment variable..."
+    python3 << PYEOF
+import json
+try:
+    with open("$CONFIG_FILE", "r") as f:
+        config = json.load(f)
+    if "gateway" in config and "auth" in config["gateway"]:
+        config["gateway"]["auth"]["token"] = "$OPENCLAW_GATEWAY_TOKEN"
+        with open("$CONFIG_FILE", "w") as f:
+            json.dump(config, f, indent=2)
+        print("✅ Gateway token updated")
+except Exception as e:
+    print(f"⚠️ Token update failed: {e}")
+PYEOF
+  fi
 fi
 
 # -----------------------------------------------------------------------------
