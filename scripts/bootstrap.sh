@@ -72,6 +72,10 @@ try:
         # Also update bind setting if OPENCLAW_GATEWAY_BIND is set
         if "$OPENCLAW_GATEWAY_BIND":
             config["gateway"]["bind"] = "$OPENCLAW_GATEWAY_BIND"
+        # Update trustedProxies if GATEWAY_TRUSTED_PROXIES is set
+        if "$GATEWAY_TRUSTED_PROXIES":
+            proxies = "$GATEWAY_TRUSTED_PROXIES".split(",")
+            config["gateway"]["trustedProxies"] = [p.strip() for p in proxies]
         with open("$CONFIG_FILE", "w") as f:
             json.dump(config, f, indent=2)
         print("✅ Gateway token updated")
