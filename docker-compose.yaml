@@ -253,10 +253,10 @@ services:
         condition: service_healthy
     
     # -------------------------------------------------------------------------
-    # HEALTHCHECK (Using OpenClaw's built-in health check)
+    # HEALTHCHECK (Simple HTTP check - doesn't require gateway pairing)
     # -------------------------------------------------------------------------
     healthcheck:
-      test: ["CMD", "openclaw", "health"]
+      test: ["CMD", "curl", "-f", "http://localhost:18789/"]
       interval: 30s
       timeout: 10s
       retries: 3
