@@ -333,11 +333,15 @@ services:
     # -------------------------------------------------------------------------
     # SECURITY HARDENING (adapted for Chrome requirements)
     # -------------------------------------------------------------------------
-    # Chrome needs SYS_ADMIN for sandboxing, but we drop everything else
+    # Chrome needs SYS_ADMIN for sandboxing
+    # LinuxServer.io image needs CHOWN, SETUID, SETGID for s6-overlay init
     cap_drop:
       - ALL
     cap_add:
       - SYS_ADMIN  # Required for Chrome's internal sandbox
+      - CHOWN      # Required for s6-overlay to change file ownership
+      - SETUID     # Required for s6-overlay to switch users
+      - SETGID     # Required for s6-overlay to switch groups
     
     security_opt:
       - no-new-privileges:true
