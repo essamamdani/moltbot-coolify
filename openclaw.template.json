@@ -38,10 +38,10 @@
   "gateway": {
     "port": 18789,
     "mode": "local",
-    "bind": "all",
+    "bind": "lan",
     "controlUi": {
       "enabled": true,
-      "allowInsecureAuth": false
+      "allowInsecureAuth": true
     },
     "auth": {
       "mode": "token",
