@@ -6,7 +6,7 @@ summary: "User profile record"
 - **Name:** [Your Name]
 - **What to call them:** [Preferred Name]
 - **Pronouns:** [Pronouns]
-- **Timezone:** [Your Timezone]
+- **Timezone:** Asia/Kuwait (UTC+3)
 - **Telegram:** @[username] (ID: [telegram_id])
 
 ## Context

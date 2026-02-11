@@ -360,7 +360,7 @@ services:
     environment:
       - PUID=1000
       - PGID=1000
-      - TZ=${TZ:-Etc/UTC}
+      - TZ=${TZ:-Asia/Kuwait}
       - CHROME_CLI=--remote-debugging-port=9222 --remote-debugging-address=0.0.0.0
     
     # -------------------------------------------------------------------------
