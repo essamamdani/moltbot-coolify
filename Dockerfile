@@ -133,7 +133,8 @@ RUN bun install -g \
 # ============================================
 ARG OPENCLAW_BETA=false
 ENV OPENCLAW_NO_ONBOARD=1 \
-    NPM_CONFIG_UNSAFE_PERM=true
+    NPM_CONFIG_UNSAFE_PERM=true \
+    OPENCLAW_NO_COMPLETION=1
 
 RUN --mount=type=cache,target=/root/.npm \
     if [ "$OPENCLAW_BETA" = "true" ]; then \
@@ -142,6 +143,11 @@ RUN --mount=type=cache,target=/root/.npm \
         npm install -g openclaw@latest; \
     fi && \
     openclaw --version
+
+# Install shell completions (before filesystem becomes read-only)
+RUN touch /root/.zshrc /root/.bashrc && \
+    openclaw completion install --shell zsh 2>/dev/null || true && \
+    openclaw completion install --shell bash 2>/dev/null || true
 
 # ============================================
 # LAYER 12: AI Tool Suite
