@@ -51,7 +51,7 @@
   },
   "agents": {
     "defaults": {
-      "workspace": "/root/openclaw-workspace",
+      "workspace": "/home/node/openclaw-workspace",
       "elevatedDefault": "ask",
       "model": {
         "primary": "nvidia/llama-3.1-nemotron-ultra-253b-v1",

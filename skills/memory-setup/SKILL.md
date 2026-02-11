@@ -135,7 +135,7 @@ Create `MEMORY.md` in workspace root:
 ```json
 "provider": "local"
 ```
-- ⚠️ Requires writable `/root/.node-llama-cpp`
+- ⚠️ Requires writable `/home/node/.node-llama-cpp`
 - Won't work with read-only filesystem
 - No API costs
 

@@ -182,10 +182,11 @@ FROM base AS runtime
 # ============================================
 # Runtime environment for writable tools
 # ============================================
-ENV PYTHONUSERBASE=/root/.openclaw/python \
-    NPM_CONFIG_PREFIX=/root/.openclaw/npm \
-    XDG_CACHE_HOME="/root/.openclaw/cache" \
-    PATH="/root/.openclaw/npm/bin:/root/.openclaw/python/bin:${PATH}"
+# Use /home/node instead of /root for non-root user
+ENV PYTHONUSERBASE=/home/node/.openclaw/python \
+    NPM_CONFIG_PREFIX=/home/node/.openclaw/npm \
+    XDG_CACHE_HOME="/home/node/.openclaw/cache" \
+    PATH="/home/node/.openclaw/npm/bin:/home/node/.openclaw/python/bin:${PATH}"
 
 # ============================================
 # LAYER 14: Scripts, Skills & Plugins
@@ -202,9 +203,22 @@ COPY openclaw.template.json /app/
 # Set permissions and create symlinks
 RUN chmod +x /app/scripts/*.sh && \
     find /app/skills -type f -name "*.sh" -exec chmod +x {} \; && \
-    ln -sf /root/.claude/bin/claude /usr/local/bin/claude 2>/dev/null || true && \
-    ln -sf /root/.kimi/bin/kimi /usr/local/bin/kimi 2>/dev/null || true && \
+    ln -sf /home/node/.claude/bin/claude /usr/local/bin/claude 2>/dev/null || true && \
+    ln -sf /home/node/.kimi/bin/kimi /usr/local/bin/kimi 2>/dev/null || true && \
     ln -sf /app/scripts/openclaw-approve.sh /usr/local/bin/openclaw-approve
+
+# ============================================
+# Prepare directories for node user
+# ============================================
+# Create directories that will be mounted as volumes
+RUN mkdir -p /home/node/.openclaw /home/node/openclaw-workspace /home/node/.config && \
+    chown -R node:node /home/node /app && \
+    chmod 755 /home/node
+
+# ============================================
+# Switch to non-root user
+# ============================================
+USER node
 
 # ============================================
 # FINAL: Entrypoint

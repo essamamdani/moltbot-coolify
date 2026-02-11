@@ -42,7 +42,7 @@ run_browser_use() {
     echo "Trying Browser-Use (Python)..." >&2
     if [ -n "$OPENAI_API_KEY" ]; then
         # Ensure playwright is usable
-        export PLAYWRIGHT_BROWSERS_PATH=/root/.cache/ms-playwright
+        export PLAYWRIGHT_BROWSERS_PATH=/home/node/.cache/ms-playwright
         python3 "$SCRIPT_DIR/scrape_browser_use.py" "$URL"
     else
         echo "Skipping Browser-Use (OPENAI_API_KEY missing)" >&2

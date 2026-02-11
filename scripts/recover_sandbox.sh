@@ -2,8 +2,8 @@
 # recover_sandbox.sh - OpenClaw Recovery Protocol
 # Auto-runs on startup to restore sandboxes and tunnels from state
 
-STATE_FILE="/root/.openclaw/state/sandboxes.json"
-LOG_FILE="/root/openclaw-workspace/recovery.log"
+STATE_FILE="/home/node/.openclaw/state/sandboxes.json"
+LOG_FILE="/home/node/openclaw-workspace/recovery.log"
 
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"

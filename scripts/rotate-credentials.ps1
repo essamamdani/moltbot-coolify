@@ -92,9 +92,9 @@ SSH into VPS and run:
   # Update token
   sudo docker exec $CONTAINER python3 << 'EOF'
 import json
-config = json.load(open("/root/.openclaw/openclaw.json"))
+config = json.load(open("/home/node/.openclaw/openclaw.json"))
 config["gateway"]["auth"]["token"] = "$NewToken"
-json.dump(config, open("/root/.openclaw/openclaw.json", "w"), indent=2)
+json.dump(config, open("/home/node/.openclaw/openclaw.json", "w"), indent=2)
 print("✅ Token updated successfully!")
 EOF
   

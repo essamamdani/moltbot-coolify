@@ -12,9 +12,9 @@ from datetime import datetime
 from pathlib import Path
 
 # Configuration
-WORKSPACE_DIR = "/root/openclaw-workspace"
+WORKSPACE_DIR = "/home/node/openclaw-workspace"
 MEMORY_FILE = os.path.join(WORKSPACE_DIR, "MEMORY.md")
-SESSIONS_DIR = "/root/.openclaw/agents/main/sessions"
+SESSIONS_DIR = "/home/node/.openclaw/agents/main/sessions"
 DAILY_LOG_DIR = os.path.join(WORKSPACE_DIR, "memory")
 
 def get_all_session_files():

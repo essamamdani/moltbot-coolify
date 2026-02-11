@@ -2,8 +2,8 @@
 # monitor_sandbox.sh - OpenClaw Health Monitor
 # Runs in background to check sandbox health
 
-LOG_FILE="/root/openclaw-workspace/monitor.log"
-RECOVERY_SCRIPT="/root/openclaw-workspace/recover_sandbox.sh"
+LOG_FILE="/home/node/openclaw-workspace/monitor.log"
+RECOVERY_SCRIPT="/home/node/openclaw-workspace/recover_sandbox.sh"
 
 log() {
   echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >> "$LOG_FILE"

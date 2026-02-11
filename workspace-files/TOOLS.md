@@ -17,8 +17,8 @@ This file contains environment-specific details for your VPS deployment.
 - **Naming Pattern:** `openclaw-[deployment-id]-<timestamp>`
 - **Network:** `coolify` (external), `openclaw-internal` (internal)
 - **Volumes:**
-  - `openclaw-config` → `/root/.openclaw`
-  - `openclaw-workspace` → `/root/openclaw-workspace`
+  - `openclaw-config` → `/home/node/.openclaw`
+  - `openclaw-workspace` → `/home/node/openclaw-workspace`
 
 ### Docker Configuration
 - **Read-only filesystem:** Root filesystem is read-only for security
@@ -26,8 +26,8 @@ This file contains environment-specific details for your VPS deployment.
   - `/tmp` (200MB tmpfs, noexec)
   - `/var/tmp` (100MB tmpfs, noexec)
   - `/run` (50MB tmpfs)
-  - `/root/.openclaw` (volume)
-  - `/root/openclaw-workspace` (volume)
+  - `/home/node/.openclaw` (volume)
+  - `/home/node/openclaw-workspace` (volume)
 - **Docker Socket:** Via proxy (tecnativa/docker-socket-proxy), not direct mount
 - **Capabilities:** All dropped (`cap_drop: ALL`)
 
@@ -48,8 +48,8 @@ This file contains environment-specific details for your VPS deployment.
 - **github** - GitHub operations (if token configured)
 
 ### Skill Locations
-1. Workspace skills: `/root/openclaw-workspace/skills/` (highest precedence)
-2. Managed skills: `/root/.openclaw/skills/` (ClawHub installs)
+1. Workspace skills: `/home/node/openclaw-workspace/skills/` (highest precedence)
+2. Managed skills: `/home/node/.openclaw/skills/` (ClawHub installs)
 3. Bundled skills: `/usr/local/lib/openclaw/skills/` (shipped with OpenClaw)
 
 ## Deployment Workflow
@@ -77,7 +77,7 @@ ssh ***REMOVED-VPS*** "docker exec <container-name> openclaw status"
 ssh ***REMOVED-VPS*** "docker exec <container-name> openclaw security audit --deep"
 
 # Health check
-ssh ***REMOVED-VPS*** "sudo /root/openclaw-health-check.sh"
+ssh ***REMOVED-VPS*** "sudo /home/node/openclaw-health-check.sh"
 ```
 
 ## API Keys

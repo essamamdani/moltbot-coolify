@@ -5,7 +5,7 @@
 set -e  # Exit on error
 
 # Configuration
-BACKUP_BASE_DIR="/root/openclaw-backups"
+BACKUP_BASE_DIR="/home/node/openclaw-backups"
 BACKUP_DATE=$(date +%Y-%m-%d_%H-%M-%S)
 BACKUP_DIR="${BACKUP_BASE_DIR}/${BACKUP_DATE}"
 RETENTION_DAYS=30  # Keep backups for 30 days

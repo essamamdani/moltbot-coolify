@@ -26,6 +26,29 @@
 
 services:
   # ===========================================================================
+  # VOLUME PERMISSION FIX (One-time migration helper)
+  # ===========================================================================
+  # This service runs once to fix volume permissions from root to node user
+  # Can be removed after successful migration to node user
+  # ===========================================================================
+  volume-fix:
+    image: alpine:latest
+    volumes:
+      - openclaw-config:/data/config
+      - openclaw-workspace:/data/workspace
+      - openclaw-home:/data/home
+    command: >
+      sh -c "
+      echo '🔧 Fixing volume permissions for node user (1000:1000)...' &&
+      chown -R 1000:1000 /data/config /data/workspace /data/home 2>/dev/null || true &&
+      chmod -R u+rwX /data/config /data/workspace /data/home 2>/dev/null || true &&
+      echo '✅ Permissions fixed successfully!'
+      "
+    restart: "no"  # Run once and exit
+    networks:
+      - openclaw-internal
+
+  # ===========================================================================
   # OPENCLAW GATEWAY
   # ===========================================================================
   openclaw:
@@ -74,7 +97,7 @@ services:
       - /tmp:size=200M,mode=1777,noexec
       - /var/tmp:size=100M,mode=1777,noexec
       - /run:size=50M,mode=755
-      - /root/.config:size=50M,mode=755
+      - /home/node/.config:size=50M,mode=755
     
     # -------------------------------------------------------------------------
     # ENVIRONMENT VARIABLES
@@ -91,11 +114,11 @@ services:
       PORT: 18789
       NODE_ENV: production
       NODE_OPTIONS: '--max-old-space-size=4096'
-      HOME: /root
+      HOME: /home/node
       TERM: xterm-256color
       
       # Persistence paths
-      HISTFILE: /root/.openclaw/.bash_history
+      HISTFILE: /home/node/.openclaw/.bash_history
       HISTSIZE: 50000
       HISTSAVE: 50000
       HISTCONTROL: ignoreboth
@@ -104,8 +127,8 @@ services:
       OPENCLAW_GATEWAY_BIND: lan
       OPENCLAW_GATEWAY_PORT: ${OPENCLAW_GATEWAY_PORT:-18789}
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
-      OPENCLAW_STATE_DIR: /root/.openclaw
-      OPENCLAW_WORKSPACE: /root/openclaw-workspace
+      OPENCLAW_STATE_DIR: /home/node/.openclaw
+      OPENCLAW_WORKSPACE: /home/node/openclaw-workspace
       
       # =====================================================================
       # SECURITY FIX #1: Restrict trusted proxies to Coolify network ONLY
@@ -223,7 +246,7 @@ services:
       # HOOKS SYSTEM (custom webhook integrations)
       # =====================================================================
       HOOKS_ENABLED: ${HOOKS_ENABLED:-false}
-      HOOKS_PATH: ${HOOKS_PATH:-/root/openclaw-workspace/hooks}
+      HOOKS_PATH: ${HOOKS_PATH:-/home/node/openclaw-workspace/hooks}
       
       # =====================================================================
       # ADVANCED CONFIGURATION
@@ -239,14 +262,16 @@ services:
     # VOLUMES (Only writable locations)
     # -------------------------------------------------------------------------
     volumes:
-      - openclaw-config:/root/.openclaw
-      - openclaw-workspace:/root/openclaw-workspace
+      - openclaw-config:/home/node/.openclaw
+      - openclaw-workspace:/home/node/openclaw-workspace
       - openclaw-home:/home/node  # Persist Playwright browsers & tool caches
     
     # -------------------------------------------------------------------------
     # DEPENDENCIES
     # -------------------------------------------------------------------------
     depends_on:
+      volume-fix:
+        condition: service_completed_successfully
       docker-proxy:
         condition: service_healthy
       browser:

@@ -5,10 +5,10 @@ set -e
 # OpenClaw Bootstrap Script v2.1 (Robust Edition)
 # =============================================================================
 
-OPENCLAW_STATE="/root/.openclaw"
+OPENCLAW_STATE="/home/node/.openclaw"
 CONFIG_FILE="$OPENCLAW_STATE/openclaw.json"
 TEMPLATE_FILE="/app/openclaw.template.json"
-WORKSPACE_DIR="/root/openclaw-workspace"
+WORKSPACE_DIR="/home/node/openclaw-workspace"
 
 echo "🦞 OpenClaw Bootstrap Starting..."
 
@@ -24,9 +24,9 @@ chmod 700 "$OPENCLAW_STATE/credentials"
 # gog CLI: Persistent Configuration
 # -----------------------------------------------------------------------------
 mkdir -p "$OPENCLAW_STATE/gogcli"
-if [ ! -L "/root/.config/gogcli" ]; then
-  mkdir -p /root/.config
-  ln -sf "$OPENCLAW_STATE/gogcli" /root/.config/gogcli
+if [ ! -L "/home/node/.config/gogcli" ]; then
+  mkdir -p /home/node/.config
+  ln -sf "$OPENCLAW_STATE/gogcli" /home/node/.config/gogcli
 fi
 
 if [ -n "$GOOGLE_CALENDAR_CREDENTIALS_JSON" ]; then
@@ -151,7 +151,7 @@ fi
       openclaw cron add --name "librarian" \
         --description "Automated knowledge distillation" \
         --every 12h \
-        --message "Run python3 /root/openclaw-workspace/scripts/librarian.py" \
+        --message "Run python3 /home/node/openclaw-workspace/scripts/librarian.py" \
         --session isolated \
         --model "google-antigravity/gemini-3-flash" \
         --deliver --channel telegram --to "${TELEGRAM_OWNER_ID:-***REMOVED-TELEGRAM-ID***}" || true

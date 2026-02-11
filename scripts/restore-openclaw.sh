@@ -16,7 +16,7 @@ if [ -z "$1" ]; then
     echo "Usage: $0 <backup-file.tar.gz>"
     echo ""
     echo "Available backups:"
-    ls -lh /root/openclaw-backups/*.tar.gz 2>/dev/null || echo "No backups found"
+    ls -lh /home/node/openclaw-backups/*.tar.gz 2>/dev/null || echo "No backups found"
     exit 1
 fi
 
