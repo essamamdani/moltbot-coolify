@@ -148,3 +148,14 @@ auth-profiles.json
 
 # Generated credential files
 new-credentials*.txt
+
+# Local test and discovery scripts (keep local only)
+scripts/test-*.sh
+scripts/test-*.ps1
+scripts/test_*.py
+scripts/discover-*.sh
+scripts/configure-*.sh
+scripts/fix-*.sh
+scripts/install-*.sh
+**/test-*.sh
+**/test-*.ps1
