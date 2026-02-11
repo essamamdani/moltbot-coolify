@@ -18,6 +18,12 @@ id_ed25519
 !.secrets-baseline.json
 !.github/SECURITY.md
 
+# Credential display scripts (NEVER commit these)
+show-credentials.ps1
+*credentials*.ps1
+*secrets*.ps1
+display-*.ps1
+
 # Sensitive configuration files (keep local only)
 # AGENTS.md contains sensitive deployment info (tokens, passwords, VPS details)
 AGENTS.md
