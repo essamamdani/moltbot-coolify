@@ -31,6 +31,7 @@ cmds = ["mkdir -p /data || true", "chmod 777 /data || true"]
 # We must manually run npm install because we are overriding this phase
 cmds = [
     "npm install", # Installs dependencies from package.json locally
+    "echo 'Installing python dependencies via python3 -m pip'",
     "python3 -m pip install --break-system-packages ipython csvkit openpyxl python-docx pypdf botasaurus browser-use playwright",
     "playwright install-deps || echo 'Warning: playwright install-deps failed, relying on system packages'",
     "curl -fsSL https://bun.sh/install | bash",
